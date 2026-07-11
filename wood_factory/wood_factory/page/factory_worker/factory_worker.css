@@ -5,8 +5,12 @@
 .worker-card { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 110px; padding: 18px 20px; border: 1px solid var(--border-color); border-radius: 12px; background: var(--card-bg); }
 .worker-card h4 { margin: 0 0 8px; font-size: 18px; }
 .worker-card small { display: block; margin-top: 8px; }
+.worker-card-body { flex: 1; }
+.worker-position { min-width: 48px; font-size: 24px; text-align: center; color: var(--text-muted); }
+.queue-next { border-inline-start: 5px solid var(--green-500); }
+.queue-next .worker-position { color: var(--green-600); }
 .worker-exception { border-inline-start: 5px solid var(--orange-500); }
 .worker-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 .worker-action { min-width: 110px; min-height: 42px; }
 .worker-empty { padding: 24px; text-align: center; border: 1px dashed var(--border-color); border-radius: 10px; }
-@media (max-width: 700px) { .worker-card { align-items: stretch; flex-direction: column; } .worker-actions, .worker-action { width: 100%; } .worker-action { min-height: 48px; } .worker-summary { flex-direction: column; gap: 6px; } }
+@media (max-width: 700px) { .worker-card { align-items: stretch; flex-direction: column; } .worker-position { text-align: start; } .worker-actions, .worker-action { width: 100%; } .worker-action { min-height: 48px; } .worker-summary { flex-direction: column; gap: 6px; } }
