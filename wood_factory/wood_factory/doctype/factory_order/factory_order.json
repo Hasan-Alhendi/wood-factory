@@ -1,0 +1,38 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "naming_series:",
+ "creation": "2026-07-11 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": ["naming_series", "sales_order", "customer", "order_date", "expected_delivery_date", "status", "current_stage", "current_responsible", "progress_percent", "delay_days", "delay_reason", "production_stages", "notes"],
+ "fields": [
+  {"default": "FO-.YYYY.-.#####", "fieldname": "naming_series", "fieldtype": "Select", "label": "Naming Series", "options": "FO-.YYYY.-.#####", "reqd": 1},
+  {"fieldname": "sales_order", "fieldtype": "Link", "label": "Sales Order", "options": "Sales Order", "reqd": 1, "unique": 1},
+  {"fetch_from": "sales_order.customer", "fieldname": "customer", "fieldtype": "Link", "label": "Customer", "options": "Customer", "read_only": 1},
+  {"default": "Today", "fieldname": "order_date", "fieldtype": "Date", "label": "Order Date", "reqd": 1},
+  {"fieldname": "expected_delivery_date", "fieldtype": "Date", "label": "Expected Delivery Date"},
+  {"default": "New", "fieldname": "status", "fieldtype": "Select", "in_list_view": 1, "label": "Status", "options": "New\nConfirmed\nWaiting for Materials\nReady for Production\nIn Production\nQuality Inspection\nRework\nPacking\nReady for Delivery\nDelivered\nClosed\nCancelled", "reqd": 1},
+  {"fieldname": "current_stage", "fieldtype": "Data", "in_list_view": 1, "label": "Current Stage"},
+  {"fieldname": "current_responsible", "fieldtype": "Link", "label": "Current Responsible", "options": "User"},
+  {"fieldname": "progress_percent", "fieldtype": "Percent", "in_list_view": 1, "label": "Progress", "read_only": 1},
+  {"fieldname": "delay_days", "fieldtype": "Int", "label": "Delay Days", "read_only": 1},
+  {"fieldname": "delay_reason", "fieldtype": "Small Text", "label": "Delay Reason"},
+  {"fieldname": "production_stages", "fieldtype": "Table", "label": "Production Stages", "options": "Factory Order Stage"},
+  {"fieldname": "notes", "fieldtype": "Text Editor", "label": "Notes"}
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-07-11 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Wood Factory",
+ "name": "Factory Order",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {"create": 1, "delete": 1, "email": 1, "export": 1, "print": 1, "read": 1, "report": 1, "role": "System Manager", "share": 1, "write": 1}
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
