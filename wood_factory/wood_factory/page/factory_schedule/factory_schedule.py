@@ -11,6 +11,10 @@ def get_production_schedule():
     orders = frappe.get_all("Factory Order", filters={"status": ["in", ACTIVE]}, fields=["name", "customer", "status", "priority", "priority_override", "priority_reason", "current_stage", "progress_percent", "expected_delivery_date", "delay_days", "modified"])
     today = getdate(nowdate())
     exception_counts = dict(frappe.db.sql("""select factory_order, count(*) from `tabPiece Exception` where status not in ('Resolved','Cancelled') group by factory_order"""))
+    current_assignments = {row.parent: row for row in frappe.db.sql("""
+        select parent, stage, workstation, status from `tabFactory Order Stage`
+        where status in ('Ready','In Progress','Blocked') order by idx
+    """, as_dict=True)}
     for order in orders:
         delivery = getdate(order.expected_delivery_date) if order.expected_delivery_date else None
         days_left = date_diff(delivery, today) if delivery else 999
@@ -19,7 +23,8 @@ def get_production_schedule():
         calculated = "Urgent" if delayed or exceptions else "High" if days_left <= 1 else "Normal" if days_left <= 3 else "Low"
         effective = order.priority_override or calculated
         score = PRIORITY_WEIGHT[effective] + min(delayed, 30) * 100 + exceptions * 75 - min(max(days_left, 0), 90)
-        order.update({"priority": effective, "calculated_priority": calculated, "days_left": days_left if delivery else None, "computed_delay_days": delayed, "open_exceptions": exceptions, "schedule_score": score})
+        assignment = current_assignments.get(order.name)
+        order.update({"priority": effective, "calculated_priority": calculated, "days_left": days_left if delivery else None, "computed_delay_days": delayed, "open_exceptions": exceptions, "schedule_score": score, "workstation": assignment.workstation if assignment else None, "stage_status": assignment.status if assignment else None})
     orders.sort(key=lambda row: (-row.schedule_score, row.expected_delivery_date or "9999-12-31", row.modified))
     for index, order in enumerate(orders, 1): order["queue_position"] = index
-    return {"orders": orders, "summary": {"queued": len(orders), "urgent": sum(1 for row in orders if row.priority == "Urgent"), "high": sum(1 for row in orders if row.priority == "High"), "with_exceptions": sum(1 for row in orders if row.open_exceptions)}}
+    return {"orders": orders, "summary": {"queued": len(orders), "urgent": sum(1 for row in orders if row.priority == "Urgent"), "high": sum(1 for row in orders if row.priority == "High"), "with_exceptions": sum(1 for row in orders if row.open_exceptions), "unassigned": sum(1 for row in orders if row.current_stage and not row.workstation)}}
