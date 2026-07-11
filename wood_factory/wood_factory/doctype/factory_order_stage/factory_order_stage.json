@@ -1,8 +1,9 @@
 {
  "actions": [], "allow_rename": 0, "creation": "2026-07-11 00:00:00.000000", "doctype": "DocType", "editable_grid": 1, "engine": "InnoDB",
- "field_order": ["stage", "status", "responsible", "started_at", "completed_at", "actual_minutes", "blocked_at", "blocked_minutes", "block_reason", "reference_doctype", "reference_name", "notes"],
+ "field_order": ["stage", "workstation", "status", "responsible", "started_at", "completed_at", "actual_minutes", "blocked_at", "blocked_minutes", "block_reason", "reference_doctype", "reference_name", "notes"],
  "fields": [
   {"fieldname": "stage", "fieldtype": "Data", "in_list_view": 1, "label": "Stage", "reqd": 1},
+  {"fieldname": "workstation", "fieldtype": "Link", "in_list_view": 1, "label": "Workstation", "options": "Factory Workstation"},
   {"default": "Pending", "fieldname": "status", "fieldtype": "Select", "in_list_view": 1, "label": "Status", "options": "Pending\nReady\nIn Progress\nBlocked\nCompleted\nSkipped", "reqd": 1},
   {"fieldname": "responsible", "fieldtype": "Link", "in_list_view": 1, "label": "Responsible", "options": "User"},
   {"fieldname": "started_at", "fieldtype": "Datetime", "label": "Started At", "read_only": 1},
