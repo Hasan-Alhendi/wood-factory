@@ -1,9 +1,12 @@
 {
  "actions": [], "allow_rename": 0, "autoname": "naming_series:", "creation": "2026-07-11 00:00:00.000000", "doctype": "DocType", "engine": "InnoDB",
- "field_order": ["naming_series", "factory_order", "board_item", "board_warehouse", "edge_band_warehouse", "board_width_mm", "board_height_mm", "saw_kerf_mm", "algorithm", "status", "parts", "total_pieces", "total_parts_area_m2", "total_edge_band_length_m", "total_edge_band_cost", "board_count", "waste_percent", "cutting_cost_usd", "material_stock_entry"],
+ "field_order": ["naming_series", "factory_order", "order_type", "piece_exception", "customer_billable", "board_item", "board_warehouse", "edge_band_warehouse", "board_width_mm", "board_height_mm", "saw_kerf_mm", "algorithm", "status", "parts", "total_pieces", "total_parts_area_m2", "total_edge_band_length_m", "total_edge_band_cost", "board_count", "waste_percent", "cutting_cost_usd", "material_stock_entry"],
  "fields": [
   {"default": "CO-.YYYY.-.#####", "fieldname": "naming_series", "fieldtype": "Select", "label": "Naming Series", "options": "CO-.YYYY.-.#####", "reqd": 1},
   {"fieldname": "factory_order", "fieldtype": "Link", "in_list_view": 1, "label": "Factory Order", "options": "Factory Order", "reqd": 1},
+  {"default": "Customer Order", "fieldname": "order_type", "fieldtype": "Select", "in_list_view": 1, "label": "Order Type", "options": "Customer Order\nInternal Replacement", "reqd": 1},
+  {"fieldname": "piece_exception", "fieldtype": "Link", "label": "Piece Exception", "options": "Piece Exception", "read_only": 1},
+  {"default": "1", "fieldname": "customer_billable", "fieldtype": "Check", "label": "Customer Billable", "read_only": 1},
   {"fieldname": "board_item", "fieldtype": "Link", "label": "Board Item", "options": "Item", "reqd": 1},
   {"fieldname": "board_warehouse", "fieldtype": "Link", "label": "Board Warehouse", "options": "Warehouse", "reqd": 1},
   {"fieldname": "edge_band_warehouse", "fieldtype": "Link", "label": "Edge Band Warehouse", "options": "Warehouse"},
