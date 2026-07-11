@@ -64,14 +64,22 @@ def _find_position(free_rects, piece, kerf, heuristic):
 
 
 def _place(board, piece, candidate, kerf):
-    _, _, width, height, rotated = candidate
-    x, y = candidate[1].x, candidate[1].y
-    occupied = Rect(x, y, min(width + kerf, candidate[1].width), min(height + kerf, candidate[1].height))
+    _, free, width, height, rotated = candidate
+    x, y = free.x, free.y
+    occupied = Rect(x, y, min(width + kerf, free.width), min(height + kerf, free.height))
     new_free = []
-    for free in board["free"]:
-        new_free.extend(_split_free_rect(free, occupied)) if _intersects(free, occupied) else new_free.append(free)
+    for free_rect in board["free"]:
+        new_free.extend(_split_free_rect(free_rect, occupied)) if _intersects(free_rect, occupied) else new_free.append(free_rect)
     board["free"] = _prune(new_free)
-    board["placements"].append({"piece_id": piece["piece_id"], "source_row": piece["source_row"], "part_name": piece["part_name"], "x": x, "y": y, "width": width, "height": height, "rotated": rotated})
+    edges = _rotate_edges(piece, rotated)
+    board["placements"].append({"piece_id": piece["piece_id"], "source_row": piece["source_row"], "part_name": piece["part_name"], "x": x, "y": y, "width": width, "height": height, "rotated": rotated, **edges})
+
+
+def _rotate_edges(piece, rotated):
+    edges = {"edge_top": bool(piece.get("edge_top")), "edge_right": bool(piece.get("edge_right")), "edge_bottom": bool(piece.get("edge_bottom")), "edge_left": bool(piece.get("edge_left"))}
+    if not rotated:
+        return edges
+    return {"edge_top": edges["edge_left"], "edge_right": edges["edge_top"], "edge_bottom": edges["edge_right"], "edge_left": edges["edge_bottom"]}
 
 
 def _intersects(a, b):
