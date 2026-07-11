@@ -26,10 +26,24 @@ class CuttingOrder(Document):
                 orientations.append((flt(row.height_mm), flt(row.width_mm)))
             if not any(width <= flt(self.board_width_mm) and height <= flt(self.board_height_mm) for width, height in orientations):
                 frappe.throw(f"Part in row {row.idx} does not fit the selected board")
+            if (row.edge_top or row.edge_right or row.edge_bottom or row.edge_left) and not row.edge_band_item:
+                frappe.throw(f"Select an Edge Band Item in row {row.idx}")
 
     def _calculate_totals(self):
         self.total_pieces = sum(int(row.qty or 0) for row in self.parts or [])
         self.total_parts_area_m2 = flt(sum(flt(row.width_mm) * flt(row.height_mm) * int(row.qty or 0) for row in self.parts or []) / 1_000_000, 4)
+        total_edge_length = 0
+        total_edge_cost = 0
+        for row in self.parts or []:
+            width_edges = int(bool(row.edge_top)) + int(bool(row.edge_bottom))
+            height_edges = int(bool(row.edge_left)) + int(bool(row.edge_right))
+            row.edge_band_length_m = flt(((flt(row.width_mm) * width_edges) + (flt(row.height_mm) * height_edges)) * int(row.qty or 0) / 1000, 3)
+            row.edge_band_cost = flt(row.edge_band_length_m * flt(row.edge_band_rate_per_m), 2)
+            total_edge_length += row.edge_band_length_m
+            total_edge_cost += row.edge_band_cost
+        self.total_edge_band_length_m = flt(total_edge_length, 3)
+        self.total_edge_band_cost = flt(total_edge_cost, 2)
+        self.cutting_cost_usd = flt(self.board_count) * 1.0
 
     @frappe.whitelist()
     def optimize_layout(self):
@@ -43,8 +57,9 @@ class CuttingOrder(Document):
         except ValueError as exc:
             frappe.throw(str(exc))
         self._replace_layouts(result)
-        self.db_set({"algorithm": result["algorithm"], "board_count": len(result["boards"]), "waste_percent": result["waste_percent"], "status": "Optimized"})
-        return {"algorithm": result["algorithm"], "board_count": len(result["boards"]), "waste_percent": result["waste_percent"]}
+        board_count = len(result["boards"])
+        self.db_set({"algorithm": result["algorithm"], "board_count": board_count, "waste_percent": result["waste_percent"], "cutting_cost_usd": board_count * 1.0, "status": "Optimized"})
+        return {"algorithm": result["algorithm"], "board_count": board_count, "waste_percent": result["waste_percent"], "cutting_cost_usd": board_count * 1.0}
 
     def _expand_pieces(self):
         pieces = []
