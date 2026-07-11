@@ -10,7 +10,7 @@
  "name": "factory-worker",
  "owner": "Administrator",
  "page_name": "factory-worker",
- "roles": [{"role": "System Manager"}],
+ "roles": [{"role": "System Manager"}, {"role": "Manufacturing User"}, {"role": "Manufacturing Manager"}],
  "script": null,
  "standard": "Yes",
  "style": null,
