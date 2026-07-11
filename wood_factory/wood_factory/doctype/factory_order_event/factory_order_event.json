@@ -8,7 +8,7 @@
  "field_order": ["factory_order", "event_type", "stage", "event_at", "performed_by", "reason", "details", "reference_doctype", "reference_name"],
  "fields": [
   {"fieldname": "factory_order", "fieldtype": "Link", "in_list_view": 1, "label": "Factory Order", "options": "Factory Order", "reqd": 1},
-  {"fieldname": "event_type", "fieldtype": "Select", "in_list_view": 1, "label": "Event Type", "options": "Stages Initialized\nStage Started\nStage Resumed\nStage Blocked\nStage Completed\nException Reported\nException Resolved", "reqd": 1},
+  {"fieldname": "event_type", "fieldtype": "Select", "in_list_view": 1, "label": "Event Type", "options": "Stages Initialized\nWorkstation Assigned\nQueue Rebalanced\nStage Started\nStage Resumed\nStage Blocked\nStage Completed\nException Reported\nException Resolved", "reqd": 1},
   {"fieldname": "stage", "fieldtype": "Data", "in_list_view": 1, "label": "Stage"},
   {"fieldname": "event_at", "fieldtype": "Datetime", "in_list_view": 1, "label": "Event At", "reqd": 1},
   {"fieldname": "performed_by", "fieldtype": "Link", "label": "Performed By", "options": "User", "reqd": 1},
