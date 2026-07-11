@@ -65,7 +65,7 @@ class CuttingOrder(Document):
         pieces = []
         for row in self.parts or []:
             for piece_no in range(1, int(row.qty or 0) + 1):
-                pieces.append({"piece_id": f"R{row.idx}-P{piece_no}", "source_row": row.idx, "part_name": row.part_name, "width": flt(row.width_mm), "height": flt(row.height_mm), "allow_rotation": bool(row.allow_rotation), "grain_direction": row.grain_direction or "Any"})
+                pieces.append({"piece_id": f"R{row.idx}-P{piece_no}", "source_row": row.idx, "part_name": row.part_name, "width": flt(row.width_mm), "height": flt(row.height_mm), "allow_rotation": bool(row.allow_rotation), "grain_direction": row.grain_direction or "Any", "edge_top": bool(row.edge_top), "edge_right": bool(row.edge_right), "edge_bottom": bool(row.edge_bottom), "edge_left": bool(row.edge_left)})
         return pieces
 
     def _replace_layouts(self, result):
@@ -76,5 +76,5 @@ class CuttingOrder(Document):
             layout = frappe.new_doc("Board Layout")
             layout.update({"cutting_order": self.name, "board_no": board_no, "board_item": self.board_item, "board_width_mm": self.board_width_mm, "board_height_mm": self.board_height_mm, "algorithm": result["algorithm"]})
             for placement in board["placements"]:
-                layout.append("placements", {"piece_id": placement["piece_id"], "source_row": placement["source_row"], "part_name": placement["part_name"], "x_mm": placement["x"], "y_mm": placement["y"], "width_mm": placement["width"], "height_mm": placement["height"], "rotated": placement["rotated"]})
+                layout.append("placements", {"piece_id": placement["piece_id"], "source_row": placement["source_row"], "part_name": placement["part_name"], "x_mm": placement["x"], "y_mm": placement["y"], "width_mm": placement["width"], "height_mm": placement["height"], "rotated": placement["rotated"], "edge_top": placement["edge_top"], "edge_right": placement["edge_right"], "edge_bottom": placement["edge_bottom"], "edge_left": placement["edge_left"]})
             layout.insert(ignore_permissions=True)
