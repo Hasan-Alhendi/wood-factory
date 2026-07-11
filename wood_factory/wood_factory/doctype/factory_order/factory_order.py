@@ -8,14 +8,25 @@ STAGES = ("Cutting", "Edge Banding", "Drilling", "Assembly", "Quality Inspection
 
 class FactoryOrder(Document):
     def validate(self):
-        self._validate_dates(); self._set_delay(); self._sync_execution_state()
+        self._validate_dates(); self._set_delay(); self._set_priority(); self._sync_execution_state()
 
     def _validate_dates(self):
         if self.expected_delivery_date and self.order_date and date_diff(self.expected_delivery_date, self.order_date) < 0: frappe.throw("Expected delivery date cannot be before order date")
+        if self.priority_override and not self.priority_reason: frappe.throw("Priority override reason is required")
 
     def _set_delay(self):
         if not self.expected_delivery_date or self.status in ("Delivered", "Closed", "Cancelled"): self.delay_days = 0; return
         self.delay_days = max(date_diff(nowdate(), self.expected_delivery_date), 0)
+
+    def _set_priority(self):
+        if self.priority_override:
+            self.priority = self.priority_override; return
+        open_exceptions = 0 if self.is_new() else frappe.db.count("Piece Exception", {"factory_order": self.name, "status": ["not in", ["Resolved", "Cancelled"]]})
+        days_left = date_diff(self.expected_delivery_date, nowdate()) if self.expected_delivery_date else 999
+        if self.delay_days > 0 or open_exceptions: self.priority = "Urgent"
+        elif days_left <= 1: self.priority = "High"
+        elif days_left <= 3: self.priority = "Normal"
+        else: self.priority = "Low"
 
     def _sync_execution_state(self):
         stages = list(self.production_stages or [])
