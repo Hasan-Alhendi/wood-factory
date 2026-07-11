@@ -44,7 +44,20 @@ def _pack(board_width, board_height, pieces, kerf, algorithm):
             boards.append(board)
     used = sum(p["width"] * p["height"] for b in boards for p in b["placements"])
     total = len(boards) * board_width * board_height
-    return {"algorithm": algorithm, "boards": [{"placements": b["placements"]} for b in boards], "waste_percent": round(((total - used) / total) * 100, 2) if total else 0}
+    return {
+        "algorithm": algorithm,
+        "boards": [
+            {
+                "placements": b["placements"],
+                "free_rectangles": [
+                    {"x": rect.x, "y": rect.y, "width": rect.width, "height": rect.height}
+                    for rect in b["free"]
+                ],
+            }
+            for b in boards
+        ],
+        "waste_percent": round(((total - used) / total) * 100, 2) if total else 0,
+    }
 
 
 def _find_position(free_rects, piece, kerf, heuristic):
@@ -79,7 +92,7 @@ def _rotate_edges(piece, rotated):
     edges = {"edge_top": bool(piece.get("edge_top")), "edge_right": bool(piece.get("edge_right")), "edge_bottom": bool(piece.get("edge_bottom")), "edge_left": bool(piece.get("edge_left"))}
     if not rotated:
         return edges
-    return {"edge_top": edges["edge_left"], "edge_right": edges["edge_top"], "edge_bottom": edges["edge_right"], "edge_left": edges["edge_bottom"]}
+    return {"edge_top": edges["edge_left"], "edge_right": edges["edge_top"], "edge_bottom": edges["edge_right"], "edge_left": edges["bottom"]}
 
 
 def _intersects(a, b):
