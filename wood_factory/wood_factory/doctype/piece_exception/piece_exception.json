@@ -1,16 +1,19 @@
 {
  "actions": [], "allow_rename": 0, "autoname": "format:PEX-{#####}", "creation": "2026-07-11 00:00:00.000000", "doctype": "DocType", "engine": "InnoDB",
- "field_order": ["factory_piece", "factory_order", "exception_type", "reason", "reported_stage", "status", "reported_by", "reported_at", "responsible", "resolution_notes", "resolved_at"],
+ "field_order": ["factory_piece", "factory_order", "exception_type", "reason", "reported_stage", "status", "reported_by", "reported_at", "responsible", "replacement_piece", "replacement_started_at", "replacement_completed_at", "resolution_notes", "resolved_at"],
  "fields": [
   {"fieldname": "factory_piece", "fieldtype": "Link", "in_list_view": 1, "label": "Factory Piece", "options": "Factory Piece", "reqd": 1},
   {"fieldname": "factory_order", "fieldtype": "Link", "in_list_view": 1, "label": "Factory Order", "options": "Factory Order", "read_only": 1, "reqd": 1},
   {"fieldname": "exception_type", "fieldtype": "Select", "in_list_view": 1, "label": "Exception Type", "options": "Missing\nDamaged\nWrong Dimensions\nWrong Edge Banding\nQuality Rejection\nDelayed\nOther", "reqd": 1},
   {"fieldname": "reason", "fieldtype": "Small Text", "label": "Reason", "reqd": 1},
   {"fieldname": "reported_stage", "fieldtype": "Data", "in_list_view": 1, "label": "Reported Stage", "read_only": 1},
-  {"default": "Open", "fieldname": "status", "fieldtype": "Select", "in_list_view": 1, "label": "Status", "options": "Open\nUnder Review\nReplacement Required\nResolved\nCancelled", "reqd": 1},
+  {"default": "Open", "fieldname": "status", "fieldtype": "Select", "in_list_view": 1, "label": "Status", "options": "Open\nUnder Review\nReplacement Required\nReplacement In Production\nReplacement Completed\nResolved\nCancelled", "reqd": 1},
   {"fieldname": "reported_by", "fieldtype": "Link", "label": "Reported By", "options": "User", "read_only": 1},
   {"fieldname": "reported_at", "fieldtype": "Datetime", "label": "Reported At", "read_only": 1},
   {"fieldname": "responsible", "fieldtype": "Link", "label": "Responsible", "options": "User"},
+  {"fieldname": "replacement_piece", "fieldtype": "Link", "label": "Replacement Piece", "options": "Factory Piece", "read_only": 1},
+  {"fieldname": "replacement_started_at", "fieldtype": "Datetime", "label": "Replacement Started At", "read_only": 1},
+  {"fieldname": "replacement_completed_at", "fieldtype": "Datetime", "label": "Replacement Completed At", "read_only": 1},
   {"fieldname": "resolution_notes", "fieldtype": "Small Text", "label": "Resolution Notes"},
   {"fieldname": "resolved_at", "fieldtype": "Datetime", "label": "Resolved At", "read_only": 1}
  ],
