@@ -17,11 +17,9 @@ function render_board_layout(frm) {
     const boardWidth = flt(frm.doc.board_width_mm);
     const boardHeight = flt(frm.doc.board_height_mm);
     const placements = frm.doc.placements || [];
-    const maxPreviewWidth = 1100;
-    const maxPreviewHeight = 650;
-    const scale = Math.min(maxPreviewWidth / boardWidth, maxPreviewHeight / boardHeight, 1);
-    const width = Math.max(boardWidth * scale, 320);
-    const height = Math.max(boardHeight * scale, 180);
+    const scale = Math.min(1100 / boardWidth, 650 / boardHeight, 1);
+    const width = boardWidth * scale;
+    const height = boardHeight * scale;
 
     const pieces = placements.map((piece, index) => {
         const x = flt(piece.x_mm) * scale;
