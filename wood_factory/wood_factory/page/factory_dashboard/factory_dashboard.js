@@ -3,6 +3,7 @@ frappe.pages["factory-dashboard"].on_page_load = function (wrapper) {
     page.main.addClass("factory-dashboard-page");
     page.set_primary_action(__("Refresh"), () => load_dashboard(page));
     page.add_inner_button(__("Worker Screen"), () => frappe.set_route("factory-worker"));
+    page.add_inner_button(__("Performance"), () => frappe.set_route("factory-performance"));
     load_dashboard(page);
     page.factory_refresh = setInterval(() => load_dashboard(page, false), 60000);
     $(wrapper).on("remove", () => clearInterval(page.factory_refresh));
