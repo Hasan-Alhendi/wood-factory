@@ -4,7 +4,10 @@ import frappe
 @frappe.whitelist()
 def get_worker_queue(stage=None):
     user = frappe.session.user
-    order_filters = {"status": ["not in", ["Delivered", "Closed", "Cancelled"]]}
+    order_filters = {
+        "status": ["not in", ["New", "Confirmed", "Waiting for Materials", "Delivered", "Closed", "Cancelled"]],
+        "current_stage": ["is", "set"],
+    }
     if stage:
         order_filters["current_stage"] = stage
     orders = frappe.get_all(
