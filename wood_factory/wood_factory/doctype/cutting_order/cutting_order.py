@@ -32,8 +32,7 @@ class CuttingOrder(Document):
     def _calculate_totals(self):
         self.total_pieces = sum(int(row.qty or 0) for row in self.parts or [])
         self.total_parts_area_m2 = flt(sum(flt(row.width_mm) * flt(row.height_mm) * int(row.qty or 0) for row in self.parts or []) / 1_000_000, 4)
-        total_edge_length = 0
-        total_edge_cost = 0
+        total_edge_length = total_edge_cost = 0
         for row in self.parts or []:
             width_edges = int(bool(row.edge_top)) + int(bool(row.edge_bottom))
             height_edges = int(bool(row.edge_left)) + int(bool(row.edge_right))
@@ -43,23 +42,74 @@ class CuttingOrder(Document):
             total_edge_cost += row.edge_band_cost
         self.total_edge_band_length_m = flt(total_edge_length, 3)
         self.total_edge_band_cost = flt(total_edge_cost, 2)
-        self.cutting_cost_usd = flt(self.board_count) * 1.0
+        self.cutting_cost_usd = flt(self.board_count)
 
     @frappe.whitelist()
     def optimize_layout(self):
-        if self.is_new():
-            frappe.throw("Save the Cutting Order before optimization")
+        if self.is_new(): frappe.throw("Save the Cutting Order before optimization")
         pieces = self._expand_pieces()
-        if not pieces:
-            frappe.throw("Add at least one door or part before optimization")
+        if not pieces: frappe.throw("Add at least one door or part before optimization")
         try:
             result = optimize(flt(self.board_width_mm), flt(self.board_height_mm), pieces, flt(self.saw_kerf_mm), self.algorithm)
         except ValueError as exc:
             frappe.throw(str(exc))
         self._replace_layouts(result)
         board_count = len(result["boards"])
-        self.db_set({"algorithm": result["algorithm"], "board_count": board_count, "waste_percent": result["waste_percent"], "cutting_cost_usd": board_count * 1.0, "status": "Optimized"})
-        return {"algorithm": result["algorithm"], "board_count": board_count, "waste_percent": result["waste_percent"], "cutting_cost_usd": board_count * 1.0}
+        self.db_set({"algorithm": result["algorithm"], "board_count": board_count, "waste_percent": result["waste_percent"], "cutting_cost_usd": board_count, "status": "Optimized"})
+        return {"algorithm": result["algorithm"], "board_count": board_count, "waste_percent": result["waste_percent"], "cutting_cost_usd": board_count}
+
+    @frappe.whitelist()
+    def check_material_availability(self):
+        self._require_optimized()
+        requirements = self._material_requirements()
+        shortages = []
+        for item in requirements:
+            available = self._available_qty(item["item_code"], item["warehouse"])
+            item["available_qty"] = available
+            item["shortage_qty"] = max(flt(item["qty"] - available), 0)
+            if item["shortage_qty"] > 0: shortages.append(item)
+        return {"requirements": requirements, "has_shortage": bool(shortages), "shortages": shortages}
+
+    @frappe.whitelist()
+    def approve_and_consume_materials(self):
+        self._require_optimized()
+        if self.material_stock_entry:
+            frappe.throw(f"Materials already consumed by Stock Entry {self.material_stock_entry}")
+        availability = self.check_material_availability()
+        if availability["has_shortage"]:
+            lines = [f'{row["item_code"]}: need {row["qty"]}, available {row["available_qty"]} in {row["warehouse"]}' for row in availability["shortages"]]
+            frappe.throw("Insufficient material stock:<br>" + "<br>".join(lines))
+        stock_entry = frappe.new_doc("Stock Entry")
+        stock_entry.stock_entry_type = "Material Issue"
+        stock_entry.remarks = f"Materials consumed for Cutting Order {self.name} / Factory Order {self.factory_order}"
+        for row in availability["requirements"]:
+            stock_entry.append("items", {"item_code": row["item_code"], "s_warehouse": row["warehouse"], "qty": row["qty"], "uom": row["uom"], "stock_uom": row["uom"], "conversion_factor": 1})
+        stock_entry.insert(ignore_permissions=True)
+        stock_entry.submit()
+        self.db_set({"material_stock_entry": stock_entry.name, "status": "Approved"})
+        return {"stock_entry": stock_entry.name, "status": "Approved"}
+
+    def _require_optimized(self):
+        if self.status not in ("Optimized", "Approved") or not self.board_count:
+            frappe.throw("Optimize the Cutting Order before checking or consuming materials")
+        if not self.board_warehouse:
+            frappe.throw("Select the Board Warehouse")
+
+    def _material_requirements(self):
+        requirements = [{"item_code": self.board_item, "warehouse": self.board_warehouse, "qty": flt(self.board_count), "uom": frappe.db.get_value("Item", self.board_item, "stock_uom") or "Nos"}]
+        edge_items = {}
+        for row in self.parts or []:
+            if not row.edge_band_item or not flt(row.edge_band_length_m): continue
+            warehouse = self.edge_band_warehouse or self.board_warehouse
+            key = (row.edge_band_item, warehouse)
+            edge_items[key] = flt(edge_items.get(key)) + flt(row.edge_band_length_m)
+        for (item_code, warehouse), qty in edge_items.items():
+            requirements.append({"item_code": item_code, "warehouse": warehouse, "qty": flt(qty, 3), "uom": frappe.db.get_value("Item", item_code, "stock_uom") or "Meter"})
+        return requirements
+
+    @staticmethod
+    def _available_qty(item_code, warehouse):
+        return flt(frappe.db.get_value("Bin", {"item_code": item_code, "warehouse": warehouse}, "actual_qty"))
 
     def _expand_pieces(self):
         pieces = []
@@ -69,8 +119,7 @@ class CuttingOrder(Document):
         return pieces
 
     def _replace_layouts(self, result):
-        old_layouts = frappe.get_all("Board Layout", filters={"cutting_order": self.name}, pluck="name")
-        for name in old_layouts:
+        for name in frappe.get_all("Board Layout", filters={"cutting_order": self.name}, pluck="name"):
             frappe.delete_doc("Board Layout", name, ignore_permissions=True)
         for board_no, board in enumerate(result["boards"], 1):
             layout = frappe.new_doc("Board Layout")
