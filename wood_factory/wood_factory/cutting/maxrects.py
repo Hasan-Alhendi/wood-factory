@@ -92,7 +92,7 @@ def _rotate_edges(piece, rotated):
     edges = {"edge_top": bool(piece.get("edge_top")), "edge_right": bool(piece.get("edge_right")), "edge_bottom": bool(piece.get("edge_bottom")), "edge_left": bool(piece.get("edge_left"))}
     if not rotated:
         return edges
-    return {"edge_top": edges["edge_left"], "edge_right": edges["edge_top"], "edge_bottom": edges["edge_right"], "edge_left": edges["bottom"]}
+    return {"edge_top": edges["edge_left"], "edge_right": edges["edge_top"], "edge_bottom": edges["edge_right"], "edge_left": edges["edge_bottom"]}
 
 
 def _intersects(a, b):
