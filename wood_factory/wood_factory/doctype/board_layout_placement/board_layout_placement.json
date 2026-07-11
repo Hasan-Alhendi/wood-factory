@@ -1,0 +1,15 @@
+{
+ "actions": [], "allow_rename": 0, "creation": "2026-07-11 00:00:00.000000", "doctype": "DocType", "editable_grid": 1, "engine": "InnoDB",
+ "field_order": ["piece_id", "source_row", "part_name", "x_mm", "y_mm", "width_mm", "height_mm", "rotated"],
+ "fields": [
+  {"fieldname": "piece_id", "fieldtype": "Data", "in_list_view": 1, "label": "Piece ID", "reqd": 1},
+  {"fieldname": "source_row", "fieldtype": "Int", "label": "Source Row", "reqd": 1},
+  {"fieldname": "part_name", "fieldtype": "Data", "in_list_view": 1, "label": "Door / Part", "reqd": 1},
+  {"fieldname": "x_mm", "fieldtype": "Float", "in_list_view": 1, "label": "X (mm)", "reqd": 1},
+  {"fieldname": "y_mm", "fieldtype": "Float", "in_list_view": 1, "label": "Y (mm)", "reqd": 1},
+  {"fieldname": "width_mm", "fieldtype": "Float", "in_list_view": 1, "label": "Placed Width (mm)", "reqd": 1},
+  {"fieldname": "height_mm", "fieldtype": "Float", "in_list_view": 1, "label": "Placed Height (mm)", "reqd": 1},
+  {"fieldname": "rotated", "fieldtype": "Check", "label": "Rotated"}
+ ],
+ "istable": 1, "modified": "2026-07-11 00:00:00.000000", "modified_by": "Administrator", "module": "Wood Factory", "name": "Board Layout Placement", "owner": "Administrator", "permissions": [], "sort_field": "modified", "sort_order": "DESC", "states": []
+}
