@@ -1,6 +1,6 @@
 {
  "actions": [], "allow_rename": 0, "autoname": "field:piece_uid", "creation": "2026-07-11 00:00:00.000000", "doctype": "DocType", "engine": "InnoDB",
- "field_order": ["piece_uid", "factory_order", "cutting_order", "board_layout", "board_no", "source_piece_id", "part_name", "width_mm", "height_mm", "current_stage", "status", "responsible", "stage_started_at", "blocked_at", "blocked_minutes", "block_reason", "completed_at"],
+ "field_order": ["piece_uid", "factory_order", "cutting_order", "board_layout", "board_no", "source_piece_id", "part_name", "width_mm", "height_mm", "is_exception", "exception_reason", "current_stage", "status", "responsible", "stage_started_at", "blocked_at", "blocked_minutes", "block_reason", "completed_at"],
  "fields": [
   {"fieldname": "piece_uid", "fieldtype": "Data", "in_list_view": 1, "label": "Piece UID", "read_only": 1, "reqd": 1, "unique": 1},
   {"fieldname": "factory_order", "fieldtype": "Link", "in_list_view": 1, "label": "Factory Order", "options": "Factory Order", "reqd": 1},
@@ -11,6 +11,8 @@
   {"fieldname": "part_name", "fieldtype": "Data", "in_list_view": 1, "label": "Door / Part", "read_only": 1},
   {"fieldname": "width_mm", "fieldtype": "Float", "label": "Width (mm)", "read_only": 1},
   {"fieldname": "height_mm", "fieldtype": "Float", "label": "Height (mm)", "read_only": 1},
+  {"default": "0", "fieldname": "is_exception", "fieldtype": "Check", "in_list_view": 1, "label": "Track Separately", "read_only": 1},
+  {"fieldname": "exception_reason", "fieldtype": "Small Text", "label": "Separate Tracking Reason", "read_only": 1},
   {"default": "Cutting", "fieldname": "current_stage", "fieldtype": "Select", "in_list_view": 1, "label": "Current Stage", "options": "Cutting\nEdge Banding\nDrilling\nAssembly\nQuality Inspection\nPacking\nCompleted", "reqd": 1},
   {"default": "Ready", "fieldname": "status", "fieldtype": "Select", "in_list_view": 1, "label": "Status", "options": "Ready\nIn Progress\nBlocked\nCompleted", "reqd": 1},
   {"fieldname": "responsible", "fieldtype": "Link", "label": "Responsible", "options": "User"},
