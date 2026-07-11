@@ -27,7 +27,7 @@ function render_queue(page, data) {
 }
 
 function order_card(order) {
-    return `<div class="worker-card" data-kind="order" data-name="${frappe.utils.escape_html(order.name)}"><div><h4>${order.name}</h4><div>${frappe.utils.escape_html(order.customer || "")} · <b>${__(order.current_stage || "")}</b></div><small>${__("Status")}: ${__(order.status)} · ${__("Progress")}: ${order.progress_percent || 0}%${order.delay_days ? ` · ${__("Delayed")} ${order.delay_days} ${__("days")}` : ""}</small></div>${action_buttons(order.status)}</div>`;
+    return `<div class="worker-card" data-kind="order" data-name="${frappe.utils.escape_html(order.name)}"><div><h4>${order.name}</h4><div>${frappe.utils.escape_html(order.customer || "")} · <b>${__(order.current_stage || "")}</b></div><small>${__("Stage Status")}: ${__(order.stage_status)} · ${__("Progress")}: ${order.progress_percent || 0}%${order.delay_days ? ` · ${__("Delayed")} ${order.delay_days} ${__("days")}` : ""}</small></div>${action_buttons(order.stage_status)}</div>`;
 }
 
 function piece_card(piece) {
