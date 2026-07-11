@@ -1,6 +1,6 @@
 {
  "actions": [], "allow_rename": 0, "autoname": "format:PEX-{#####}", "creation": "2026-07-11 00:00:00.000000", "doctype": "DocType", "engine": "InnoDB",
- "field_order": ["factory_piece", "factory_order", "exception_type", "reason", "reported_stage", "status", "reported_by", "reported_at", "responsible", "replacement_piece", "suggested_remnant", "remnant_waste_area_m2", "replacement_started_at", "replacement_completed_at", "resolution_notes", "resolved_at"],
+ "field_order": ["factory_piece", "factory_order", "exception_type", "reason", "reported_stage", "status", "reported_by", "reported_at", "responsible", "replacement_piece", "suggested_remnant", "remnant_waste_area_m2", "replacement_cutting_order", "replacement_started_at", "replacement_completed_at", "resolution_notes", "resolved_at"],
  "fields": [
   {"fieldname": "factory_piece", "fieldtype": "Link", "in_list_view": 1, "label": "Factory Piece", "options": "Factory Piece", "reqd": 1},
   {"fieldname": "factory_order", "fieldtype": "Link", "in_list_view": 1, "label": "Factory Order", "options": "Factory Order", "read_only": 1, "reqd": 1},
@@ -14,6 +14,7 @@
   {"fieldname": "replacement_piece", "fieldtype": "Link", "label": "Replacement Piece", "options": "Factory Piece", "read_only": 1},
   {"fieldname": "suggested_remnant", "fieldtype": "Link", "label": "Suggested Remnant", "options": "Board Remnant", "read_only": 1},
   {"fieldname": "remnant_waste_area_m2", "fieldtype": "Float", "label": "Remnant Waste Area (m²)", "precision": "4", "read_only": 1},
+  {"fieldname": "replacement_cutting_order", "fieldtype": "Link", "label": "Replacement Cutting Order", "options": "Cutting Order", "read_only": 1},
   {"fieldname": "replacement_started_at", "fieldtype": "Datetime", "label": "Replacement Started At", "read_only": 1},
   {"fieldname": "replacement_completed_at", "fieldtype": "Datetime", "label": "Replacement Completed At", "read_only": 1},
   {"fieldname": "resolution_notes", "fieldtype": "Small Text", "label": "Resolution Notes"},
