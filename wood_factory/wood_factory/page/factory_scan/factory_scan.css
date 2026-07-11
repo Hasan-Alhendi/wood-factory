@@ -1,0 +1,12 @@
+.factory-scan-page { max-width: 850px; margin: 0 auto; padding-bottom: 40px; }
+.scan-panel { margin-top: 24px; padding: 28px; border: 1px solid var(--border-color); border-radius: 14px; background: var(--card-bg); text-align: center; }
+.scan-panel h2 { margin-top: 0; }
+.scan-input { height: 58px; margin: 22px 0 12px; font-size: 22px; text-align: center; }
+.scan-submit { min-width: 180px; min-height: 48px; }
+.scan-result { margin-top: 20px; }
+.scan-card { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 24px; border: 1px solid var(--border-color); border-radius: 14px; background: var(--card-bg); }
+.scan-card h3 { margin: 0 0 8px; }
+.scan-card strong { display: block; margin-top: 10px; }
+.scan-exception { border-inline-start: 6px solid var(--orange-500); }
+.scan-open { min-width: 150px; min-height: 48px; }
+@media (max-width: 700px) { .scan-panel { padding: 18px; } .scan-card { align-items: stretch; flex-direction: column; } .scan-open { width: 100%; } }
