@@ -16,6 +16,8 @@ def get_worker_queue(stage=None):
         fields=["name", "customer", "current_stage", "status", "progress_percent", "expected_delivery_date", "delay_days", "current_responsible"],
         order_by="delay_days desc, expected_delivery_date asc, modified asc",
     )
+    for order in orders:
+        order["stage_status"] = frappe.db.get_value("Factory Order Stage", {"parent": order["name"], "stage": order["current_stage"]}, "status") or "Pending"
     exceptions = frappe.get_all(
         "Factory Piece",
         filters={"is_exception": 1, "status": ["not in", ["Completed", "Cancelled"]], **({"current_stage": stage} if stage else {})},
