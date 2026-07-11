@@ -5,6 +5,7 @@ frappe.ui.form.on("Factory Order", {
         }
         if (!frm.is_new()) {
             frm.add_custom_button(__("Factory Pieces"), () => frappe.set_route("List", "Factory Piece", {factory_order: frm.doc.name}), __("View"));
+            frm.add_custom_button(__("Production Timeline"), () => frappe.set_route("factory-order-timeline", frm.doc.name), __("View"));
         }
         const active = (frm.doc.production_stages || []).find(row => ["Ready", "In Progress", "Blocked"].includes(row.status));
         if (!active) return;
