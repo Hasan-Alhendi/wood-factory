@@ -1,5 +1,6 @@
 import frappe
 from frappe.utils import cint, date_diff, getdate, nowdate
+from wood_factory.alerts import evaluate_factory_alerts
 
 
 ACTIVE_ORDER_STATUSES = [
@@ -39,7 +40,7 @@ def get_dashboard_data():
         fields=["parent", "stage", "block_reason", "blocked_at", "responsible"],
         order_by="blocked_at asc",
     )
-
+    intervention_alerts = evaluate_factory_alerts()
     delayed = sorted((order for order in orders if order["is_delayed"]), key=lambda row: (-row["computed_delay_days"], row["name"]))
     return {
         "summary": {
@@ -48,8 +49,10 @@ def get_dashboard_data():
             "blocked_orders": len({row.parent for row in blocked_stages}),
             "open_exceptions": len(exceptions),
             "ready_for_delivery": sum(1 for order in orders if order.status == "Ready for Delivery"),
+            "needs_intervention": len(intervention_alerts),
         },
         "stage_counts": stage_counts,
+        "intervention_alerts": intervention_alerts[:30],
         "delayed_orders": delayed[:20],
         "blocked_stages": blocked_stages[:20],
         "exceptions": exceptions[:20],
