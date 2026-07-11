@@ -7,13 +7,18 @@ from wood_factory.wood_factory.cutting import optimize
 
 class CuttingOrder(Document):
     def validate(self):
-        self._validate_board()
-        self._validate_parts()
-        self._calculate_totals()
+        self._validate_board(); self._validate_parts(); self._validate_order_type(); self._calculate_totals()
 
     def _validate_board(self):
         if flt(self.board_width_mm) <= 0 or flt(self.board_height_mm) <= 0: frappe.throw("Board width and height must be greater than zero")
         if flt(self.saw_kerf_mm) < 0: frappe.throw("Saw kerf cannot be negative")
+
+    def _validate_order_type(self):
+        if self.order_type == "Internal Replacement":
+            if not self.piece_exception: frappe.throw("Internal replacement cutting requires a Piece Exception")
+            self.customer_billable = 0
+        else:
+            self.customer_billable = 1
 
     def _validate_parts(self):
         for row in self.parts or []:
@@ -62,13 +67,17 @@ class CuttingOrder(Document):
         if availability["has_shortage"]:
             lines = [f'{row["item_code"]}: need {row["qty"]}, available {row["available_qty"]} in {row["warehouse"]}' for row in availability["shortages"]]
             frappe.throw("Insufficient material stock:<br>" + "<br>".join(lines))
-        stock_entry = frappe.new_doc("Stock Entry"); stock_entry.stock_entry_type = "Material Issue"; stock_entry.remarks = f"Materials consumed for Cutting Order {self.name} / Factory Order {self.factory_order}"
+        stock_entry = frappe.new_doc("Stock Entry"); stock_entry.stock_entry_type = "Material Issue"
+        cost_owner = "factory" if self.order_type == "Internal Replacement" else f"customer order {self.factory_order}"
+        stock_entry.remarks = f"Materials consumed for Cutting Order {self.name}; cost owner: {cost_owner}; Factory Order {self.factory_order}"
         for row in availability["requirements"]: stock_entry.append("items", {"item_code": row["item_code"], "s_warehouse": row["warehouse"], "qty": row["qty"], "uom": row["uom"], "stock_uom": row["uom"], "conversion_factor": 1})
         stock_entry.insert(ignore_permissions=True); stock_entry.submit(); self._create_factory_pieces()
+        if self.order_type == "Internal Replacement": self._register_reusable_remnants()
         self.db_set({"material_stock_entry": stock_entry.name, "status": "Approved"})
         return {"stock_entry": stock_entry.name, "status": "Approved", "piece_count": frappe.db.count("Factory Piece", {"cutting_order": self.name})}
 
     def _create_factory_pieces(self):
+        if self.order_type == "Internal Replacement": return
         if frappe.db.exists("Factory Piece", {"cutting_order": self.name}): frappe.throw("Factory pieces already exist for this Cutting Order")
         layouts = frappe.get_all("Board Layout", filters={"cutting_order": self.name}, fields=["name", "board_no"], order_by="board_no asc")
         for layout_row in layouts:
@@ -77,6 +86,17 @@ class CuttingOrder(Document):
                 piece = frappe.new_doc("Factory Piece")
                 piece.update({"piece_uid": f"{self.name}-{placement.piece_id}", "factory_order": self.factory_order, "cutting_order": self.name, "board_layout": layout.name, "board_no": layout.board_no, "source_piece_id": placement.piece_id, "part_name": placement.part_name, "width_mm": placement.width_mm, "height_mm": placement.height_mm, "current_stage": "Cutting", "status": "Ready"})
                 piece.insert(ignore_permissions=True)
+
+    def _register_reusable_remnants(self):
+        result = optimize(flt(self.board_width_mm), flt(self.board_height_mm), self._expand_pieces(), flt(self.saw_kerf_mm), self.algorithm)
+        layouts = frappe.get_all("Board Layout", filters={"cutting_order": self.name}, fields=["name", "board_no"], order_by="board_no asc")
+        for index, board in enumerate(result["boards"]):
+            layout_name = layouts[index].name if index < len(layouts) else None
+            for rect in board.get("free_rectangles", []):
+                if flt(rect["width"]) < 100 or flt(rect["height"]) < 100: continue
+                remnant = frappe.new_doc("Board Remnant")
+                remnant.update({"board_item": self.board_item, "warehouse": self.board_warehouse, "width_mm": rect["width"], "height_mm": rect["height"], "source_cutting_order": self.name, "source_board_layout": layout_name, "notes": f"Factory-owned leftover from internal replacement cutting {self.name}"})
+                remnant.insert(ignore_permissions=True)
 
     def _require_optimized(self):
         if self.status not in ("Optimized", "Approved") or not self.board_count: frappe.throw("Optimize the Cutting Order before checking or consuming materials")
