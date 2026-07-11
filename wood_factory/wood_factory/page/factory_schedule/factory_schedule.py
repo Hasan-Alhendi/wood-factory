@@ -11,7 +11,63 @@ DEFAULT_ESTIMATES = {"Cutting": 60, "Edge Banding": 45, "Drilling": 30, "Assembl
 def get_production_schedule():
     orders = _get_scheduled_orders()
     _apply_eta_forecast(orders)
-    return {"orders": orders, "summary": _summary(orders)}
+    bottlenecks = get_bottleneck_analysis()
+    return {"orders": orders, "summary": _summary(orders), "bottlenecks": bottlenecks}
+
+
+@frappe.whitelist()
+def get_bottleneck_analysis():
+    history = dict(frappe.db.sql("""select stage, avg(actual_minutes) from `tabFactory Order Stage` where status='Completed' and actual_minutes > 0 group by stage"""))
+    workstations = frappe.get_all("Factory Workstation", filters={"status": "Active"}, fields=["name", "stage", "effective_minutes_per_day"])
+    stage_capacity = {}
+    workstation_capacity = {}
+    for row in workstations:
+        capacity = max(flt(row.effective_minutes_per_day), 0)
+        workstation_capacity[row.name] = capacity
+        stage_capacity[row.stage] = stage_capacity.get(row.stage, 0) + capacity
+    rows = frappe.db.sql("""
+        select s.parent, s.stage, s.workstation, s.status, s.started_at, o.priority
+        from `tabFactory Order Stage` s
+        inner join `tabFactory Order` o on o.name=s.parent
+        where o.status in %(active)s and s.status in ('Ready','In Progress','Blocked')
+    """, {"active": ACTIVE}, as_dict=True)
+    stages = {}
+    workstation_load = {}
+    now = now_datetime()
+    for row in rows:
+        estimate = flt(history.get(row.stage) or DEFAULT_ESTIMATES.get(row.stage, 30), 2)
+        if row.status == "In Progress" and row.started_at:
+            elapsed = max((get_datetime(now) - get_datetime(row.started_at)).total_seconds() / 60, 0)
+            estimate = max(estimate - elapsed, 5)
+        data = stages.setdefault(row.stage, {"stage": row.stage, "load_minutes": 0, "waiting_orders": 0, "blocked_orders": 0, "in_progress": 0, "urgent_orders": 0, "workstations": {}})
+        data["load_minutes"] += estimate
+        data["waiting_orders"] += 1 if row.status in ("Ready", "Blocked") else 0
+        data["blocked_orders"] += 1 if row.status == "Blocked" else 0
+        data["in_progress"] += 1 if row.status == "In Progress" else 0
+        data["urgent_orders"] += 1 if row.priority == "Urgent" else 0
+        if row.workstation:
+            workstation_load[row.workstation] = workstation_load.get(row.workstation, 0) + estimate
+            data["workstations"][row.workstation] = data["workstations"].get(row.workstation, 0) + estimate
+    analysis = []
+    for stage, data in stages.items():
+        capacity = stage_capacity.get(stage, 0)
+        data["capacity_minutes_per_day"] = capacity
+        data["load_percent"] = round(data["load_minutes"] / capacity * 100, 1) if capacity else 999
+        data["queue_delay_days"] = round(data["load_minutes"] / capacity, 2) if capacity else None
+        station_rows = []
+        for name, load in data["workstations"].items():
+            station_capacity = workstation_capacity.get(name, 0)
+            station_rows.append({"workstation": name, "load_minutes": round(load, 2), "load_percent": round(load / station_capacity * 100, 1) if station_capacity else 999})
+        station_rows.sort(key=lambda item: (-item["load_percent"], item["workstation"]))
+        data["workstations"] = station_rows
+        data["primary_workstation"] = station_rows[0]["workstation"] if station_rows else None
+        data["severity"] = "Critical" if data["load_percent"] >= 150 or not capacity else "Bottleneck" if data["load_percent"] >= 100 else "Watch" if data["load_percent"] >= 75 else "Healthy"
+        analysis.append(data)
+    analysis.sort(key=lambda item: (-item["load_percent"], -item["waiting_orders"], item["stage"]))
+    for index, item in enumerate(analysis, 1):
+        item["rank"] = index
+        item["is_current_bottleneck"] = index == 1 and item["severity"] != "Healthy"
+    return analysis
 
 
 @frappe.whitelist()
