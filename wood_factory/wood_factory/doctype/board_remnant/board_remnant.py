@@ -19,6 +19,14 @@ class BoardRemnant(Document):
         piece = frappe.get_doc("Factory Piece", factory_piece)
         if not piece.is_exception:
             frappe.throw("Remnants are reserved here for separately tracked replacement pieces")
+        required_board_item = frappe.db.get_value("Cutting Order", piece.cutting_order, "board_item")
+        if not required_board_item:
+            frappe.throw(f"Cannot determine the required board item for piece {piece.name}")
+        if self.board_item != required_board_item:
+            frappe.throw(
+                f"Wrong board material/color. Piece {piece.name} requires {required_board_item}, "
+                f"but remnant {self.name} is {self.board_item}"
+            )
         fits_normal = flt(piece.width_mm) <= flt(self.width_mm) and flt(piece.height_mm) <= flt(self.height_mm)
         fits_rotated = flt(piece.height_mm) <= flt(self.width_mm) and flt(piece.width_mm) <= flt(self.height_mm)
         if not (fits_normal or fits_rotated):
