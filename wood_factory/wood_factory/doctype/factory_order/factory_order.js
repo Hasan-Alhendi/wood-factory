@@ -10,6 +10,7 @@ frappe.ui.form.on("Factory Order", {
         const active = (frm.doc.production_stages || []).find(row => ["Ready", "In Progress", "Blocked"].includes(row.status));
         if (!active) return;
         if (["Ready", "Blocked"].includes(active.status)) {
+            frm.add_custom_button(__("Auto Assign Workstation: {0}", [active.stage]), () => run_stage_method(frm, "auto_assign_stage", active), __("Production"));
             frm.add_custom_button(__("Start / Resume: {0}", [active.stage]), () => run_stage_method(frm, "start_stage", active), __("Production"));
         }
         if (active.status === "In Progress") {
@@ -19,9 +20,25 @@ frappe.ui.form.on("Factory Order", {
     },
 });
 
+frappe.ui.form.on("Factory Order Stage", {
+    workstation(frm, cdt, cdn) {
+        const row = locals[cdt][cdn];
+        if (!row.workstation || !row.stage) return;
+        frappe.db.get_value("Factory Workstation", row.workstation, ["stage", "status"]).then(r => {
+            const workstation = r.message || {};
+            if (workstation.stage && workstation.stage !== row.stage) {
+                frappe.msgprint(__("This workstation belongs to {0}, not {1}", [workstation.stage, row.stage]));
+                frappe.model.set_value(cdt, cdn, "workstation", null);
+            } else if (workstation.status && workstation.status !== "Active") {
+                frappe.msgprint(__("Selected workstation is not active"));
+            }
+        });
+    },
+});
+
 function run_order_method(frm, method) { frm.call(method).then(() => frm.reload_doc()); }
 function run_stage_method(frm, method, row) {
-    frm.call(method, {row_name: row.name}).then(() => { frappe.show_alert({message: __("Production stage updated"), indicator: "green"}); frm.reload_doc(); });
+    frm.call(method, {row_name: row.name}).then(r => { const workstation = r.message && r.message.workstation; frappe.show_alert({message: workstation ? __("Assigned to {0}", [workstation]) : __("Production stage updated"), indicator: "green"}); frm.reload_doc(); });
 }
 function block_stage(frm, row) {
     frappe.prompt([{fieldname: "reason", fieldtype: "Small Text", label: __("Block Reason"), reqd: 1}], values => {
