@@ -5,7 +5,7 @@
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
- "field_order": ["part_name", "width_mm", "height_mm", "qty", "allow_rotation", "grain_direction", "edge_top", "edge_right", "edge_bottom", "edge_left", "edge_band_item", "notes"],
+ "field_order": ["part_name", "width_mm", "height_mm", "qty", "allow_rotation", "grain_direction", "edge_top", "edge_right", "edge_bottom", "edge_left", "edge_band_item", "edge_band_rate_per_m", "edge_band_length_m", "edge_band_cost", "notes"],
  "fields": [
   {"fieldname": "part_name", "fieldtype": "Data", "in_list_view": 1, "label": "Door / Part", "reqd": 1},
   {"fieldname": "width_mm", "fieldtype": "Float", "in_list_view": 1, "label": "Width (mm)", "reqd": 1},
@@ -18,6 +18,9 @@
   {"fieldname": "edge_bottom", "fieldtype": "Check", "label": "Edge Bottom"},
   {"fieldname": "edge_left", "fieldtype": "Check", "label": "Edge Left"},
   {"fieldname": "edge_band_item", "fieldtype": "Link", "label": "Edge Band Item", "options": "Item"},
+  {"fieldname": "edge_band_rate_per_m", "fieldtype": "Currency", "label": "Edge Band Rate / m"},
+  {"fieldname": "edge_band_length_m", "fieldtype": "Float", "label": "Edge Band Length (m)", "precision": "3", "read_only": 1},
+  {"fieldname": "edge_band_cost", "fieldtype": "Currency", "label": "Edge Band Cost", "read_only": 1},
   {"fieldname": "notes", "fieldtype": "Small Text", "label": "Notes"}
  ],
  "istable": 1,
