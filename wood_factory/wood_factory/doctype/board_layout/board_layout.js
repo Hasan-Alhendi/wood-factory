@@ -1,13 +1,7 @@
 frappe.ui.form.on("Board Layout", {
-    refresh(frm) {
-        render_board_layout(frm);
-    },
-    placements_add(frm) {
-        render_board_layout(frm);
-    },
-    placements_remove(frm) {
-        render_board_layout(frm);
-    },
+    refresh(frm) { render_board_layout(frm); },
+    placements_add(frm) { render_board_layout(frm); },
+    placements_remove(frm) { render_board_layout(frm); },
 });
 
 function render_board_layout(frm) {
@@ -30,8 +24,9 @@ function render_board_layout(frm) {
         const size = `${format_number(piece.width_mm)} × ${format_number(piece.height_mm)} mm`;
         const rotation = cint(piece.rotated) ? ` · ${__("Rotated")}` : "";
         const hue = (index * 47) % 360;
+        const edgeClasses = ["top", "right", "bottom", "left"].filter(side => cint(piece[`edge_${side}`])).map(side => `wf-edge-${side}`).join(" ");
         return `
-            <div class="wf-piece" title="${label} · ${size}${rotation}"
+            <div class="wf-piece ${edgeClasses}" title="${label} · ${size}${rotation}"
                 style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;background:hsl(${hue} 55% 84%);border-color:hsl(${hue} 45% 38%);">
                 <strong>${label}</strong>
                 <span>${size}</span>
@@ -44,9 +39,10 @@ function render_board_layout(frm) {
             .wf-layout-wrap{overflow:auto;padding:12px 0 18px}
             .wf-layout-meta{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:10px;font-size:13px}
             .wf-board{position:relative;box-sizing:content-box;background:#f4ead7;border:3px solid #5c4630;box-shadow:0 3px 12px rgba(0,0,0,.12);width:${width}px;height:${height}px}
-            .wf-piece{position:absolute;box-sizing:border-box;border:2px solid;overflow:hidden;padding:4px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;line-height:1.15;color:#222}
+            .wf-piece{position:absolute;box-sizing:border-box;border:1px solid;overflow:hidden;padding:4px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;line-height:1.15;color:#222}
             .wf-piece strong{font-size:12px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
             .wf-piece span,.wf-piece small{font-size:10px;margin-top:2px}
+            .wf-edge-top{border-top:5px solid #d32f2f!important}.wf-edge-right{border-right:5px solid #d32f2f!important}.wf-edge-bottom{border-bottom:5px solid #d32f2f!important}.wf-edge-left{border-left:5px solid #d32f2f!important}
         </style>
         <div class="wf-layout-wrap">
             <div class="wf-layout-meta">
@@ -54,6 +50,7 @@ function render_board_layout(frm) {
                 <span>${format_number(boardWidth)} × ${format_number(boardHeight)} mm</span>
                 <span>${__("Pieces")}: ${placements.length}</span>
                 <span>${__("Waste")}: ${format_number(frm.doc.waste_percent || 0, 2)}%</span>
+                <span><b style="color:#d32f2f">━</b> ${__("Edge Band")}</span>
             </div>
             <div class="wf-board">${pieces}</div>
         </div>`);
