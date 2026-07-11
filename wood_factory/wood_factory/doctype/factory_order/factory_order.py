@@ -30,7 +30,8 @@ class FactoryOrder(Document):
     def initialize_production_stages(self):
         if self.production_stages: frappe.throw("Production stages already exist")
         for index, stage in enumerate(STAGES): self.append("production_stages", {"stage": stage, "status": "Ready" if index == 0 else "Pending"})
-        self.save(); self._sync_normal_pieces(); return self._execution_summary()
+        self.save(); self._sync_normal_pieces(); self._record_event("Stages Initialized", details="Production stages initialized")
+        return self._execution_summary()
 
     @frappe.whitelist()
     def start_stage(self, row_name):
@@ -38,10 +39,11 @@ class FactoryOrder(Document):
         if row.status not in ("Ready", "Blocked"): frappe.throw("Only a ready or blocked stage can be started")
         active = next((stage for stage in self.production_stages if stage.name != row.name and stage.status == "In Progress"), None)
         if active: frappe.throw(f"Stage {active.stage} is already in progress")
-        now = now_datetime()
-        if row.status == "Blocked" and row.blocked_at: row.blocked_minutes = flt(row.blocked_minutes) + time_diff_in_seconds(now, row.blocked_at) / 60; row.blocked_at = None
+        now = now_datetime(); resumed = row.status == "Blocked"
+        if resumed and row.blocked_at: row.blocked_minutes = flt(row.blocked_minutes) + time_diff_in_seconds(now, row.blocked_at) / 60; row.blocked_at = None
         if not row.started_at: row.started_at = now
-        row.status = "In Progress"; self.save(); self._sync_normal_pieces(row)
+        row.status = "In Progress"; row.responsible = frappe.session.user; self.save(); self._sync_normal_pieces(row)
+        self._record_event("Stage Resumed" if resumed else "Stage Started", row.stage, details=f"Stage handled by {frappe.session.user}", reference_doctype="Factory Order Stage", reference_name=row.name)
         return self._execution_summary()
 
     @frappe.whitelist()
@@ -50,6 +52,7 @@ class FactoryOrder(Document):
         if row.status != "In Progress": frappe.throw("Only an in-progress stage can be blocked")
         if not reason: frappe.throw("Block reason is required")
         row.status = "Blocked"; row.block_reason = reason; row.blocked_at = now_datetime(); self.save(); self._sync_normal_pieces(row)
+        self._record_event("Stage Blocked", row.stage, reason=reason, reference_doctype="Factory Order Stage", reference_name=row.name)
         return self._execution_summary()
 
     @frappe.whitelist()
@@ -61,7 +64,13 @@ class FactoryOrder(Document):
         next_row = next((stage for stage in self.production_stages if stage.idx > row.idx and stage.status == "Pending"), None)
         if next_row: next_row.status = "Ready"
         self.save(); self._sync_normal_pieces(next_row)
+        self._record_event("Stage Completed", row.stage, details=f"Actual work time: {row.actual_minutes} minute(s)", reference_doctype="Factory Order Stage", reference_name=row.name)
         return self._execution_summary()
+
+    def _record_event(self, event_type, stage=None, reason=None, details=None, reference_doctype=None, reference_name=None):
+        event = frappe.new_doc("Factory Order Event")
+        event.update({"factory_order": self.name, "event_type": event_type, "stage": stage, "event_at": now_datetime(), "performed_by": frappe.session.user, "reason": reason, "details": details, "reference_doctype": reference_doctype, "reference_name": reference_name})
+        event.flags.factory_event_insert = True; event.insert(ignore_permissions=True)
 
     def _sync_normal_pieces(self, stage=None):
         if not frappe.db.exists("DocType", "Factory Piece"): return
