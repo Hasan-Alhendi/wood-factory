@@ -1,6 +1,7 @@
 frappe.pages["factory-worker"].on_page_load = function (wrapper) {
     const page = frappe.ui.make_app_page({parent: wrapper, title: __("Factory Worker"), single_column: true});
     page.set_primary_action(__("Refresh"), () => load_queue(page));
+    page.add_inner_button(__("Scan QR / Barcode"), () => frappe.set_route("factory-scan"));
     page.add_field({label: __("Stage"), fieldname: "stage", fieldtype: "Select", options: "\nCutting\nEdge Banding\nDrilling\nAssembly\nQuality Inspection\nPacking", change: () => load_queue(page)});
     page.main.addClass("factory-worker-page");
     load_queue(page);
