@@ -312,6 +312,7 @@ def sync_factory_order_actual_costs(factory_order):
     remnant_material = total("Remnant Material Consumption", 0)
     remnant_recovery_signed = total("Remnant Recovery", 0)
     remnant_recovery = abs(min(remnant_recovery_signed, 0))
+    explicit_waste = total("Waste Cost", 0)
     rework_material = flt(internal_new_material + remnant_material, 2)
     customer_labor = total("Labor Cost", 1)
     rework_labor = total("Labor Cost", 0)
@@ -327,7 +328,7 @@ def sync_factory_order_actual_costs(factory_order):
             continue
         waste_percent = flt(frappe.db.get_value("Cutting Order", row.cutting_order, "waste_percent"))
         gross_unused_cost += flt(row.amount) * waste_percent / 100
-    net_waste_cost = max(gross_unused_cost - remnant_recovery, 0)
+    net_waste_cost = max(gross_unused_cost - remnant_recovery, 0) + explicit_waste
 
     stage_rows = frappe.get_all(
         "Factory Order Stage",
@@ -340,8 +341,14 @@ def sync_factory_order_actual_costs(factory_order):
         "Factory Piece",
         {"factory_order": factory_order, "is_exception": 1, "costing_status": "Partial"},
     ) if frappe.db.exists("DocType", "Factory Piece") else 0
+    open_exception_pieces = frappe.db.count(
+        "Factory Piece",
+        {"factory_order": factory_order, "is_exception": 1, "status": ["!=", "Completed"]},
+    ) if frappe.db.exists("DocType", "Factory Piece") else 0
     if exception_partial or (completed and any((row.costing_status or "Pending") != "Posted" for row in completed)):
         costing_status = "Partial"
+    elif open_exception_pieces:
+        costing_status = "In Progress"
     elif stage_rows and all(row.status in ("Completed", "Skipped") for row in stage_rows):
         costing_status = "Complete"
     elif rows or completed:
