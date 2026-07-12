@@ -1,0 +1,39 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "creation": "2026-07-12 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": ["event_key", "factory_order", "piece_exception", "factory_piece", "production_stage", "workstation", "responsible", "actual_minutes", "labor_hourly_rate", "machine_hourly_rate", "labor_cost", "machine_cost", "costing_status", "costed_on", "missing_details"],
+ "fields": [
+  {"fieldname": "event_key", "fieldtype": "Data", "label": "Event Key", "read_only": 1, "reqd": 1, "unique": 1},
+  {"fieldname": "factory_order", "fieldtype": "Link", "in_list_view": 1, "label": "Factory Order", "options": "Factory Order", "reqd": 1},
+  {"fieldname": "piece_exception", "fieldtype": "Link", "label": "Piece Exception", "options": "Piece Exception"},
+  {"fieldname": "factory_piece", "fieldtype": "Link", "in_list_view": 1, "label": "Factory Piece", "options": "Factory Piece", "reqd": 1},
+  {"fieldname": "production_stage", "fieldtype": "Data", "in_list_view": 1, "label": "Production Stage", "reqd": 1},
+  {"fieldname": "workstation", "fieldtype": "Link", "label": "Workstation", "options": "Factory Workstation"},
+  {"fieldname": "responsible", "fieldtype": "Link", "label": "Worker", "options": "User"},
+  {"fieldname": "actual_minutes", "fieldtype": "Float", "label": "Actual Minutes", "precision": "2", "read_only": 1},
+  {"fieldname": "labor_hourly_rate", "fieldtype": "Currency", "label": "Labor Rate / Hour", "read_only": 1},
+  {"fieldname": "machine_hourly_rate", "fieldtype": "Currency", "label": "Machine Rate / Hour", "read_only": 1},
+  {"fieldname": "labor_cost", "fieldtype": "Currency", "label": "Labor Cost", "read_only": 1},
+  {"fieldname": "machine_cost", "fieldtype": "Currency", "label": "Machine Cost", "read_only": 1},
+  {"default": "Pending", "fieldname": "costing_status", "fieldtype": "Select", "in_list_view": 1, "label": "Costing Status", "options": "Pending\nPartial\nPosted", "read_only": 1, "reqd": 1},
+  {"fieldname": "costed_on", "fieldtype": "Datetime", "in_list_view": 1, "label": "Costed On", "read_only": 1, "reqd": 1},
+  {"fieldname": "missing_details", "fieldtype": "Small Text", "label": "Missing Cost Details", "read_only": 1}
+ ],
+ "modified": "2026-07-12 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Wood Factory",
+ "name": "Factory Piece Stage Cost",
+ "owner": "Administrator",
+ "permissions": [
+  {"read": 1, "report": 1, "role": "Manufacturing Manager"},
+  {"read": 1, "report": 1, "role": "Accounts Manager"},
+  {"read": 1, "report": 1, "role": "System Manager"}
+ ],
+ "sort_field": "costed_on",
+ "sort_order": "DESC",
+ "states": []
+}
