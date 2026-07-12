@@ -12,3 +12,10 @@ scheduler_events = {
         ]
     }
 }
+
+doc_events = {
+    "Stock Entry": {
+        "before_cancel": "wood_factory.accounting.validate_stock_entry_cancel",
+        "on_cancel": "wood_factory.accounting.on_stock_entry_cancel",
+    }
+}
