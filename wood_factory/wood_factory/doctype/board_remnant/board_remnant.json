@@ -1,20 +1,25 @@
 {
  "actions": [], "allow_rename": 0, "autoname": "format:REM-{#####}", "creation": "2026-07-11 00:00:00.000000", "doctype": "DocType", "engine": "InnoDB",
- "field_order": ["board_item", "warehouse", "width_mm", "height_mm", "area_m2", "status", "source_cutting_order", "source_board_layout", "reserved_for_piece", "reserved_at", "consumed_at", "notes"],
+ "field_order": ["board_item", "warehouse", "width_mm", "height_mm", "area_m2", "valuation_rate_per_m2", "estimated_value", "currency", "status", "source_cutting_order", "source_board_layout", "recovery_cost_ledger", "reserved_for_piece", "reserved_at", "consumed_at", "consumption_cost_ledger", "notes"],
  "fields": [
   {"fieldname": "board_item", "fieldtype": "Link", "in_list_view": 1, "label": "Board Item", "options": "Item", "reqd": 1},
   {"fieldname": "warehouse", "fieldtype": "Link", "in_list_view": 1, "label": "Warehouse", "options": "Warehouse", "reqd": 1},
   {"fieldname": "width_mm", "fieldtype": "Float", "in_list_view": 1, "label": "Width (mm)", "reqd": 1},
   {"fieldname": "height_mm", "fieldtype": "Float", "in_list_view": 1, "label": "Height (mm)", "reqd": 1},
   {"fieldname": "area_m2", "fieldtype": "Float", "label": "Area (m²)", "read_only": 1},
+  {"fieldname": "valuation_rate_per_m2", "fieldtype": "Currency", "label": "Valuation Rate / m²", "options": "currency", "read_only": 1},
+  {"fieldname": "estimated_value", "fieldtype": "Currency", "in_list_view": 1, "label": "Estimated Recoverable Value", "options": "currency", "read_only": 1},
+  {"fieldname": "currency", "fieldtype": "Link", "label": "Currency", "options": "Currency", "read_only": 1},
   {"default": "Available", "fieldname": "status", "fieldtype": "Select", "in_list_view": 1, "label": "Status", "options": "Available\nReserved\nConsumed\nScrapped", "reqd": 1},
   {"fieldname": "source_cutting_order", "fieldtype": "Link", "label": "Source Cutting Order", "options": "Cutting Order", "read_only": 1},
   {"fieldname": "source_board_layout", "fieldtype": "Link", "label": "Source Board Layout", "options": "Board Layout", "read_only": 1},
+  {"fieldname": "recovery_cost_ledger", "fieldtype": "Link", "label": "Recovery Cost Ledger", "options": "Factory Cost Ledger", "read_only": 1},
   {"fieldname": "reserved_for_piece", "fieldtype": "Link", "label": "Reserved For Piece", "options": "Factory Piece", "read_only": 1},
   {"fieldname": "reserved_at", "fieldtype": "Datetime", "label": "Reserved At", "read_only": 1},
   {"fieldname": "consumed_at", "fieldtype": "Datetime", "label": "Consumed At", "read_only": 1},
+  {"fieldname": "consumption_cost_ledger", "fieldtype": "Link", "label": "Consumption Cost Ledger", "options": "Factory Cost Ledger", "read_only": 1},
   {"fieldname": "notes", "fieldtype": "Small Text", "label": "Notes"}
  ],
- "links": [], "modified": "2026-07-11 00:00:00.000000", "modified_by": "Administrator", "module": "Wood Factory", "name": "Board Remnant", "owner": "Administrator",
- "permissions": [{"create": 1, "delete": 1, "email": 1, "export": 1, "print": 1, "read": 1, "report": 1, "role": "System Manager", "share": 1, "write": 1}], "sort_field": "modified", "sort_order": "DESC", "states": [], "title_field": "board_item"
+ "links": [], "modified": "2026-07-12 00:00:00.000000", "modified_by": "Administrator", "module": "Wood Factory", "name": "Board Remnant", "owner": "Administrator",
+ "permissions": [{"create": 1, "email": 1, "export": 1, "print": 1, "read": 1, "report": 1, "role": "System Manager", "share": 1, "write": 1},{"read":1,"report":1,"role":"Manufacturing Manager"},{"read":1,"report":1,"role":"Accounts Manager"}], "sort_field": "modified", "sort_order": "DESC", "states": [], "title_field": "board_item"
 }
