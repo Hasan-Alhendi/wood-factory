@@ -47,8 +47,8 @@ def resolve_accounting_context(factory_order, internal_replacement=False, expens
         cost_center = order.get("cost_center") or settings.customer_cost_center
         expense_account = {
             "material": settings.material_expense_account,
-            "labor": settings.labor_expense_account,
-            "machine": settings.machine_expense_account,
+            "labor": settings.labor_expense_account or settings.material_expense_account,
+            "machine": settings.machine_expense_account or settings.material_expense_account,
         }.get(expense_kind, settings.material_expense_account)
         cost_owner = f"Customer Order {order.name}"
 
