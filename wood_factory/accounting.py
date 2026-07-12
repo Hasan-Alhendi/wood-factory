@@ -224,6 +224,19 @@ def validate_stock_entry_cancel(doc, method=None):
                 f"Stock Entry {doc.name} belongs to Cutting Order {row.name}. "
                 "Set the Cutting Order status to Cancelled before cancelling its material issue."
             )
+        if frappe.db.exists("DocType", "Board Remnant"):
+            downstream = frappe.get_all(
+                "Board Remnant",
+                filters={"source_cutting_order": row.name, "status": ["in", ["Reserved", "Consumed", "Scrapped"]]},
+                fields=["name", "status"],
+                limit_page_length=10,
+            )
+            if downstream:
+                details = ", ".join(f"{item.name} ({item.status})" for item in downstream)
+                frappe.throw(
+                    f"Cannot cancel Stock Entry {doc.name}; remnants from Cutting Order {row.name} "
+                    f"already have downstream activity: {details}"
+                )
 
 
 def on_stock_entry_cancel(doc, method=None):
@@ -247,6 +260,27 @@ def on_stock_entry_cancel(doc, method=None):
     for row in cutting_orders:
         frappe.db.set_value("Cutting Order", row.name, "accounting_status", "Reversed", update_modified=False)
         affected_orders.add(row.factory_order)
+        recovery_ledgers = frappe.get_all(
+            "Factory Cost Ledger",
+            filters={"cutting_order": row.name, "transaction_type": "Remnant Recovery", "status": "Posted"},
+            fields=["name"],
+        )
+        for ledger in recovery_ledgers:
+            frappe.db.set_value("Factory Cost Ledger", ledger.name, "status", "Reversed", update_modified=False)
+        if frappe.db.exists("DocType", "Board Remnant"):
+            available_remnants = frappe.get_all(
+                "Board Remnant",
+                filters={"source_cutting_order": row.name, "status": "Available"},
+                fields=["name", "notes"],
+            )
+            for remnant in available_remnants:
+                note = f"{remnant.notes or ''}\nInvalidated because Stock Entry {doc.name} was cancelled".strip()
+                frappe.db.set_value(
+                    "Board Remnant",
+                    remnant.name,
+                    {"status": "Scrapped", "residual_scrap_value": 0, "notes": note},
+                    update_modified=False,
+                )
 
     for factory_order in affected_orders:
         sync_factory_order_costs(factory_order)
