@@ -5,6 +5,19 @@ from wood_factory.accounting import _create_cost_ledger, resolve_accounting_cont
 
 
 def calculate_remnant_value(remnant):
+    if remnant.parent_remnant:
+        parent = frappe.db.get_value(
+            "Board Remnant",
+            remnant.parent_remnant,
+            ["valuation_rate_per_m2", "currency"],
+            as_dict=True,
+        )
+        rate = flt(parent.valuation_rate_per_m2) if parent else 0
+        return {
+            "rate_per_m2": flt(rate, 4),
+            "estimated_value": flt(remnant.area_m2 * rate, 2),
+            "currency": parent.currency if parent else None,
+        }
     if not remnant.source_cutting_order:
         return {"rate_per_m2": 0, "estimated_value": 0, "currency": None}
     cutting = frappe.get_doc("Cutting Order", remnant.source_cutting_order)
@@ -41,7 +54,7 @@ def calculate_remnant_value(remnant):
 
 
 def post_remnant_recovery(remnant):
-    if flt(remnant.estimated_value) <= 0 or not remnant.source_cutting_order:
+    if remnant.parent_remnant or flt(remnant.estimated_value) <= 0 or not remnant.source_cutting_order:
         return None
     cutting = frappe.get_doc("Cutting Order", remnant.source_cutting_order)
     if cutting.order_type != "Internal Replacement":
@@ -63,7 +76,7 @@ def post_remnant_recovery(remnant):
     return ledger
 
 
-def post_remnant_consumption(remnant, factory_piece):
+def post_remnant_consumption(remnant, factory_piece, consumed_value):
     piece = frappe.get_doc("Factory Piece", factory_piece) if isinstance(factory_piece, str) else factory_piece
     exception = frappe.db.get_value("Piece Exception", {"replacement_piece": piece.name}, "name")
     context = resolve_accounting_context(piece.factory_order, internal_replacement=True, expense_kind="material")
@@ -76,12 +89,51 @@ def post_remnant_consumption(remnant, factory_piece):
         production_stage="Cutting",
         transaction_type="Remnant Material Consumption",
         context=context,
-        amount=abs(flt(remnant.estimated_value, 2)),
+        amount=abs(flt(consumed_value, 2)),
         accounting_document_type="Board Remnant",
         accounting_document=remnant.name,
-        remarks=f"Factory-owned remnant {remnant.name} consumed for replacement piece {piece.name}",
+        remarks=f"Factory-owned remnant {remnant.name} partially consumed for replacement piece {piece.name}",
     )
     sync_factory_order_costs(piece.factory_order)
+    return ledger
+
+
+def post_remnant_scrap_loss(remnant, amount, factory_piece=None, reason="Residual scrap"):
+    amount = abs(flt(amount, 2))
+    if amount <= 0:
+        return None
+    piece = frappe.get_doc("Factory Piece", factory_piece) if factory_piece else None
+    if piece:
+        factory_order = piece.factory_order
+        cutting_order = piece.cutting_order
+        exception = frappe.db.get_value("Piece Exception", {"replacement_piece": piece.name}, "name")
+        piece_name = piece.name
+        suffix = f"{piece.name}|Residual"
+    else:
+        cutting = frappe.get_doc("Cutting Order", remnant.source_cutting_order) if remnant.source_cutting_order else None
+        if not cutting:
+            return None
+        factory_order = cutting.factory_order
+        cutting_order = cutting.name
+        exception = cutting.piece_exception
+        piece_name = None
+        suffix = "Scrapped"
+    context = resolve_accounting_context(factory_order, internal_replacement=True, expense_kind="material")
+    ledger = _create_cost_ledger(
+        transaction_key=f"Board Remnant|{remnant.name}|Waste|{suffix}",
+        factory_order=factory_order,
+        cutting_order=cutting_order,
+        piece_exception=exception,
+        factory_piece=piece_name,
+        production_stage="Cutting",
+        transaction_type="Waste Cost",
+        context=context,
+        amount=amount,
+        accounting_document_type="Board Remnant",
+        accounting_document=remnant.name,
+        remarks=f"{reason}: value lost from remnant {remnant.name}",
+    )
+    sync_factory_order_costs(factory_order)
     return ledger
 
 
@@ -93,6 +145,7 @@ def reverse_remnant_recovery(remnant):
         as_dict=True,
     )
     if not ledger:
-        return
+        return False
     frappe.db.set_value("Factory Cost Ledger", ledger.name, "status", "Reversed", update_modified=False)
     sync_factory_order_costs(ledger.factory_order)
+    return True
