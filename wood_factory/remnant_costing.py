@@ -8,9 +8,18 @@ def calculate_remnant_value(remnant):
     if not remnant.source_cutting_order:
         return {"rate_per_m2": 0, "estimated_value": 0, "currency": None}
     cutting = frappe.get_doc("Cutting Order", remnant.source_cutting_order)
-    if cutting.order_type != "Internal Replacement" or not cutting.material_stock_entry:
+    if cutting.order_type != "Internal Replacement":
         return {"rate_per_m2": 0, "estimated_value": 0, "currency": cutting.currency}
-    stock_entry = frappe.get_doc("Stock Entry", cutting.material_stock_entry)
+    stock_entry_name = cutting.material_stock_entry
+    if not stock_entry_name:
+        stock_entry_name = frappe.db.get_value(
+            "Factory Cost Ledger",
+            {"cutting_order": cutting.name, "transaction_type": "Internal Replacement Material", "status": "Posted"},
+            "accounting_document",
+        )
+    if not stock_entry_name:
+        return {"rate_per_m2": 0, "estimated_value": 0, "currency": cutting.currency}
+    stock_entry = frappe.get_doc("Stock Entry", stock_entry_name)
     board_value = 0
     for row in stock_entry.items or []:
         if row.item_code != cutting.board_item:
@@ -23,10 +32,11 @@ def calculate_remnant_value(remnant):
     total_area = flt(cutting.board_count) * flt(cutting.board_width_mm) * flt(cutting.board_height_mm) / 1_000_000
     rate = board_value / total_area if total_area else 0
     value = flt(remnant.area_m2) * rate
+    company = cutting.company or frappe.db.get_value("Factory Order", cutting.factory_order, "company")
     return {
         "rate_per_m2": flt(rate, 4),
         "estimated_value": flt(value, 2),
-        "currency": cutting.currency or frappe.db.get_value("Company", cutting.company, "default_currency"),
+        "currency": cutting.currency or frappe.db.get_value("Company", company, "default_currency"),
     }
 
 
@@ -76,7 +86,12 @@ def post_remnant_consumption(remnant, factory_piece):
 
 
 def reverse_remnant_recovery(remnant):
-    ledger = frappe.db.get_value("Factory Cost Ledger", {"transaction_key": f"Board Remnant|{remnant.name}|Recovery", "status": "Posted"}, ["name", "factory_order"], as_dict=True)
+    ledger = frappe.db.get_value(
+        "Factory Cost Ledger",
+        {"transaction_key": f"Board Remnant|{remnant.name}|Recovery", "status": "Posted"},
+        ["name", "factory_order"],
+        as_dict=True,
+    )
     if not ledger:
         return
     frappe.db.set_value("Factory Cost Ledger", ledger.name, "status", "Reversed", update_modified=False)
