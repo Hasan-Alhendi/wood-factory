@@ -44,8 +44,7 @@ class FactoryOrder(Document):
             self.priority = self.priority_override
             return
         open_exceptions = 0 if self.is_new() else frappe.db.count(
-            "Piece Exception",
-            {"factory_order": self.name, "status": ["not in", ["Resolved", "Cancelled"]]},
+            "Piece Exception", {"factory_order": self.name, "status": ["not in", ["Resolved", "Cancelled"]]}
         )
         days_left = date_diff(self.expected_delivery_date, nowdate()) if self.expected_delivery_date else 999
         if self.delay_days > 0 or open_exceptions:
@@ -77,7 +76,7 @@ class FactoryOrder(Document):
             self.current_responsible = None
             return
         completed = sum(1 for row in stages if row.status in ("Completed", "Skipped"))
-        self.progress_percent = flt((completed / len(stages)) * 100, 2)
+        self.progress_percent = flt(completed / len(stages) * 100, 2)
         current = next((row for row in stages if row.status in ("In Progress", "Blocked")), None) or next(
             (row for row in stages if row.status == "Ready"), None
         )
@@ -93,7 +92,7 @@ class FactoryOrder(Document):
         if self.production_stages:
             frappe.throw("Production stages already exist")
         for index, stage in enumerate(STAGES):
-            self.append("production_stages", {"stage": stage, "status": "Ready" if index == 0 else "Pending"})
+            self.append("production_stages", {"stage": stage, "status": "Ready" if index == 0 else "Pending", "costing_status": "Pending"})
         self._assign_ready_workstations()
         self.save()
         self._sync_normal_pieces()
@@ -110,13 +109,7 @@ class FactoryOrder(Document):
         if not row.workstation:
             frappe.throw(f"No active workstation is available for {row.stage}")
         self.save()
-        self._record_event(
-            "Workstation Assigned",
-            row.stage,
-            details=f"{previous or 'Unassigned'} → {row.workstation}",
-            reference_doctype="Factory Workstation",
-            reference_name=row.workstation,
-        )
+        self._record_event("Workstation Assigned", row.stage, details=f"{previous or 'Unassigned'} → {row.workstation}", reference_doctype="Factory Workstation", reference_name=row.workstation)
         return {"workstation": row.workstation, **self._execution_summary()}
 
     def _assign_ready_workstations(self):
@@ -125,31 +118,19 @@ class FactoryOrder(Document):
                 row.workstation = self._best_workstation(row.stage, exclude_order=self.name)
 
     def _best_workstation(self, stage, exclude_order=None):
-        workstations = frappe.get_all(
-            "Factory Workstation",
-            filters={"stage": stage, "status": "Active"},
-            fields=["name", "effective_minutes_per_day"],
-        )
+        workstations = frappe.get_all("Factory Workstation", filters={"stage": stage, "status": "Active"}, fields=["name", "effective_minutes_per_day"])
         if not workstations:
             return None
         loads = dict(frappe.db.sql(
             """
-            select s.workstation, count(*)
-            from `tabFactory Order Stage` s
+            select s.workstation, count(*) from `tabFactory Order Stage` s
             inner join `tabFactory Order` o on o.name=s.parent
             where s.stage=%s and s.workstation is not null and s.status in ('Ready','In Progress','Blocked')
-              and (%s is null or o.name != %s)
-            group by s.workstation
+              and (%s is null or o.name != %s) group by s.workstation
             """,
             (stage, exclude_order, exclude_order),
         ))
-        workstations.sort(
-            key=lambda row: (
-                (loads.get(row.name, 0) + 1) / max(flt(row.effective_minutes_per_day), 1),
-                loads.get(row.name, 0),
-                row.name,
-            )
-        )
+        workstations.sort(key=lambda row: ((loads.get(row.name, 0) + 1) / max(flt(row.effective_minutes_per_day), 1), loads.get(row.name, 0), row.name))
         return workstations[0].name
 
     @frappe.whitelist()
@@ -157,18 +138,14 @@ class FactoryOrder(Document):
         row = self._stage(row_name)
         if row.status not in ("Ready", "Blocked"):
             frappe.throw("Only a ready or blocked stage can be started")
-        active = next(
-            (stage for stage in self.production_stages if stage.name != row.name and stage.status == "In Progress"),
-            None,
-        )
+        active = next((stage for stage in self.production_stages if stage.name != row.name and stage.status == "In Progress"), None)
         if active:
             frappe.throw(f"Stage {active.stage} is already in progress")
         if not row.workstation:
             row.workstation = self._best_workstation(row.stage, exclude_order=self.name)
         if not row.workstation:
             frappe.throw(f"No active workstation is available for {row.stage}")
-        workstation_status = frappe.db.get_value("Factory Workstation", row.workstation, "status")
-        if workstation_status != "Active":
+        if frappe.db.get_value("Factory Workstation", row.workstation, "status") != "Active":
             frappe.throw(f"Workstation {row.workstation} is not active. Reassign the stage before starting")
         now = now_datetime()
         resumed = row.status == "Blocked"
@@ -181,13 +158,7 @@ class FactoryOrder(Document):
         row.responsible = frappe.session.user
         self.save()
         self._sync_normal_pieces(row)
-        self._record_event(
-            "Stage Resumed" if resumed else "Stage Started",
-            row.stage,
-            details=f"Stage handled by {frappe.session.user} on {row.workstation}",
-            reference_doctype="Factory Workstation",
-            reference_name=row.workstation,
-        )
+        self._record_event("Stage Resumed" if resumed else "Stage Started", row.stage, details=f"Stage handled by {frappe.session.user} on {row.workstation}", reference_doctype="Factory Workstation", reference_name=row.workstation)
         return self._execution_summary()
 
     @frappe.whitelist()
@@ -202,13 +173,7 @@ class FactoryOrder(Document):
         row.blocked_at = now_datetime()
         self.save()
         self._sync_normal_pieces(row)
-        self._record_event(
-            "Stage Blocked",
-            row.stage,
-            reason=reason,
-            reference_doctype="Factory Order Stage",
-            reference_name=row.name,
-        )
+        self._record_event("Stage Blocked", row.stage, reason=reason, reference_doctype="Factory Order Stage", reference_name=row.name)
         return self._execution_summary()
 
     @frappe.whitelist()
@@ -222,62 +187,45 @@ class FactoryOrder(Document):
         row.actual_minutes = flt(max(elapsed - flt(row.blocked_minutes), 0), 2)
         row.status = "Completed"
         row.blocked_at = None
-        next_row = next(
-            (stage for stage in self.production_stages if stage.idx > row.idx and stage.status == "Pending"),
-            None,
-        )
+        next_row = next((stage for stage in self.production_stages if stage.idx > row.idx and stage.status == "Pending"), None)
         if next_row:
             next_row.status = "Ready"
             if not next_row.workstation:
                 next_row.workstation = self._best_workstation(next_row.stage, exclude_order=self.name)
         self.save()
+        from wood_factory.costing import post_order_stage_cost
+        costing = post_order_stage_cost(self.name, row.name)
+        self.reload()
         self._sync_normal_pieces(next_row)
-        self._record_event(
-            "Stage Completed",
-            row.stage,
-            details=f"Actual work time: {row.actual_minutes} minute(s) on {row.workstation or 'unassigned workstation'}",
-            reference_doctype="Factory Workstation" if row.workstation else "Factory Order Stage",
-            reference_name=row.workstation or row.name,
-        )
-        return self._execution_summary()
+        self._record_event("Stage Completed", row.stage, details=f"Actual work time: {row.actual_minutes} minute(s) on {row.workstation or 'unassigned workstation'}; costing: {costing.get('status')}", reference_doctype="Factory Workstation" if row.workstation else "Factory Order Stage", reference_name=row.workstation or row.name)
+        return {**self._execution_summary(), "costing": costing}
+
+    @frappe.whitelist()
+    def recalculate_actual_costing(self):
+        from wood_factory.costing import post_order_stage_cost, sync_factory_order_actual_costs
+        results = []
+        for row in self.production_stages or []:
+            if row.status == "Completed" and (row.costing_status or "Pending") != "Posted":
+                results.append({"stage": row.stage, **post_order_stage_cost(self.name, row.name)})
+        totals = sync_factory_order_actual_costs(self.name)
+        self.reload()
+        return {"stages": results, "totals": totals}
 
     def _record_event(self, event_type, stage=None, reason=None, details=None, reference_doctype=None, reference_name=None):
         event = frappe.new_doc("Factory Order Event")
-        event.update({
-            "factory_order": self.name,
-            "event_type": event_type,
-            "stage": stage,
-            "event_at": now_datetime(),
-            "performed_by": frappe.session.user,
-            "reason": reason,
-            "details": details,
-            "reference_doctype": reference_doctype,
-            "reference_name": reference_name,
-        })
+        event.update({"factory_order": self.name, "event_type": event_type, "stage": stage, "event_at": now_datetime(), "performed_by": frappe.session.user, "reason": reason, "details": details, "reference_doctype": reference_doctype, "reference_name": reference_name})
         event.flags.factory_event_insert = True
         event.insert(ignore_permissions=True)
 
     def _sync_normal_pieces(self, stage=None):
         if not frappe.db.exists("DocType", "Factory Piece"):
             return
-        stage = stage or next(
-            (row for row in self.production_stages if row.status in ("In Progress", "Blocked", "Ready")),
-            None,
-        )
-        values = {
-            "current_stage": stage.stage if stage else "Completed",
-            "status": stage.status if stage else "Completed",
-            "responsible": stage.responsible if stage else None,
-            "stage_started_at": stage.started_at if stage else None,
-        }
+        stage = stage or next((row for row in self.production_stages if row.status in ("In Progress", "Blocked", "Ready")), None)
+        values = {"current_stage": stage.stage if stage else "Completed", "status": stage.status if stage else "Completed", "responsible": stage.responsible if stage else None, "stage_started_at": stage.started_at if stage else None, "workstation": stage.workstation if stage else None}
         if values["status"] == "Pending":
             values["status"] = "Ready"
-        frappe.db.set_value(
-            "Factory Piece",
-            {"factory_order": self.name, "is_exception": 0},
-            values,
-            update_modified=False,
-        )
+        available = {field.fieldname for field in frappe.get_meta("Factory Piece").fields}
+        frappe.db.set_value("Factory Piece", {"factory_order": self.name, "is_exception": 0}, {key: value for key, value in values.items() if key in available}, update_modified=False)
 
     def _stage(self, row_name):
         row = next((stage for stage in self.production_stages if stage.name == row_name), None)
@@ -286,9 +234,4 @@ class FactoryOrder(Document):
         return row
 
     def _execution_summary(self):
-        return {
-            "status": self.status,
-            "current_stage": self.current_stage,
-            "current_responsible": self.current_responsible,
-            "progress_percent": self.progress_percent,
-        }
+        return {"status": self.status, "current_stage": self.current_stage, "current_responsible": self.current_responsible, "progress_percent": self.progress_percent, "costing_status": self.costing_status, "total_actual_cost": self.total_actual_cost}
