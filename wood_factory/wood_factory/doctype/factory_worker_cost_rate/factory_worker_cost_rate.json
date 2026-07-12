@@ -1,0 +1,31 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "creation": "2026-07-12 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": ["user", "company", "hourly_cost", "currency", "effective_from", "active", "notes"],
+ "fields": [
+  {"fieldname": "user", "fieldtype": "Link", "in_list_view": 1, "label": "Worker User", "options": "User", "reqd": 1},
+  {"fieldname": "company", "fieldtype": "Link", "in_list_view": 1, "label": "Company", "options": "Company", "reqd": 1},
+  {"fieldname": "hourly_cost", "fieldtype": "Currency", "in_list_view": 1, "label": "Hourly Labor Cost", "options": "currency", "reqd": 1},
+  {"fetch_from": "company.default_currency", "fieldname": "currency", "fieldtype": "Link", "label": "Currency", "options": "Currency", "read_only": 1},
+  {"default": "Today", "fieldname": "effective_from", "fieldtype": "Date", "in_list_view": 1, "label": "Effective From", "reqd": 1},
+  {"default": "1", "fieldname": "active", "fieldtype": "Check", "in_list_view": 1, "label": "Active"},
+  {"fieldname": "notes", "fieldtype": "Small Text", "label": "Notes"}
+ ],
+ "modified": "2026-07-12 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Wood Factory",
+ "name": "Factory Worker Cost Rate",
+ "owner": "Administrator",
+ "permissions": [
+  {"create": 1, "read": 1, "report": 1, "role": "Manufacturing Manager", "write": 1},
+  {"create": 1, "read": 1, "report": 1, "role": "Accounts Manager", "write": 1},
+  {"create": 1, "delete": 1, "read": 1, "report": 1, "role": "System Manager", "write": 1}
+ ],
+ "sort_field": "effective_from",
+ "sort_order": "DESC",
+ "states": []
+}
