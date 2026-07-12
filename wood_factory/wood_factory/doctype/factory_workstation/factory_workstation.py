@@ -14,6 +14,16 @@ class FactoryWorkstation(Document):
             frappe.throw("Efficiency Percent must be greater than 0 and not exceed 100")
         if self.status != "Active" and not self.unavailable_reason:
             frappe.throw("Unavailable Reason is required when workstation is not active")
+        if flt(self.default_labor_hourly_cost) < 0 or flt(self.machine_hourly_cost) < 0:
+            frappe.throw("Hourly costing rates cannot be negative")
+        if not self.company:
+            try:
+                from wood_factory.accounting import get_accounting_settings
+                self.company = get_accounting_settings().company
+            except Exception:
+                self.company = None
+        if self.company and not self.currency:
+            self.currency = frappe.db.get_value("Company", self.company, "default_currency")
         self.effective_minutes_per_day = flt(self.minutes_per_day * flt(self.efficiency_percent) / 100, 2) if self.status == "Active" else 0
 
     @frappe.whitelist()
