@@ -19,6 +19,9 @@ frappe.ui.form.on("Cutting Order", {
         if (frm.doc.material_stock_entry) {
             frm.add_custom_button(__("Material Stock Entry"), () => frappe.set_route("Form", "Stock Entry", frm.doc.material_stock_entry), __("View"));
         }
+        if (frm.doc.cost_ledger_entry) {
+            frm.add_custom_button(__("Factory Cost Ledger"), () => frappe.set_route("Form", "Factory Cost Ledger", frm.doc.cost_ledger_entry), __("View"));
+        }
     },
 });
 
@@ -33,9 +36,16 @@ function show_material_availability(frm) {
 }
 
 function approve_and_consume(frm) {
-    frappe.confirm(__("This will submit a Material Issue Stock Entry and deduct boards and edge band from stock. Continue?"), () => {
+    const owner = frm.doc.order_type === "Internal Replacement" ? __("the factory internal rework cost center") : __("the customer order cost center");
+    frappe.confirm(__("This will submit a Material Issue, deduct boards and edge band from stock, and post the value to {0}. Continue?", [owner]), () => {
         frm.call("approve_and_consume_materials").then((r) => {
-            frappe.show_alert({message: __("Materials consumed in Stock Entry {0}", [r.message.stock_entry]), indicator: "green"});
+            const result = r.message || {};
+            const billable = result.customer_billable ? __("Customer order cost") : __("Factory internal rework cost");
+            frappe.msgprint({
+                title: __("Materials Posted"),
+                indicator: "green",
+                message: `<p>${__("Stock Entry")}: <b>${frappe.utils.escape_html(result.stock_entry || "")}</b></p><p>${__("Posted Value")}: <b>${result.posted_value || 0} ${frappe.utils.escape_html(result.currency || "")}</b></p><p>${__("Cost Owner")}: <b>${billable}</b></p>`,
+            });
             frm.reload_doc();
         });
     });
