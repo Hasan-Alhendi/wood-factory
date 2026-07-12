@@ -6,7 +6,9 @@ app_email = "eng.mohamad.hasan.alhendi@gmail.com"
 app_license = "mit"
 
 scheduler_events = {
-    "hourly": [
-        "wood_factory.alerts.evaluate_factory_alerts"
-    ]
+    "cron": {
+        "*/15 * * * *": [
+            "wood_factory.alerts.evaluate_factory_alerts"
+        ]
+    }
 }
