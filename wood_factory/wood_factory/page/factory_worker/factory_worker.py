@@ -35,7 +35,12 @@ def get_worker_queue(stage=None, workstation=None):
     queued_orders.sort(key=lambda row: (-row.queue_score, row.expected_delivery_date or "9999-12-31", row.modified))
     for position, order in enumerate(queued_orders, 1):
         order["queue_position"] = position
-    exceptions = frappe.get_all("Factory Piece", filters={"is_exception": 1, "status": ["not in", ["Completed", "Cancelled"]], **({"current_stage": stage} if stage else {})}, fields=["name", "piece_uid", "factory_order", "part_name", "width_mm", "height_mm", "current_stage", "status", "block_reason", "responsible"], order_by="modified asc")
+    exception_filters = {"is_exception": 1, "status": ["not in", ["Completed", "Cancelled"]]}
+    if stage:
+        exception_filters["current_stage"] = stage
+    if workstation:
+        exception_filters["workstation"] = ["in", [workstation, ""]]
+    exceptions = frappe.get_all("Factory Piece", filters=exception_filters, fields=["name", "piece_uid", "factory_order", "part_name", "width_mm", "height_mm", "current_stage", "status", "block_reason", "responsible", "workstation", "last_stage_actual_minutes", "last_stage_costing_status"], order_by="modified asc")
     workstations = frappe.get_all("Factory Workstation", filters={"status": "Active", **({"stage": stage} if stage else {})}, fields=["name", "stage"], order_by="stage asc, name asc")
     return {"user": user, "stage": stage, "workstation": workstation, "orders": queued_orders, "exceptions": exceptions, "stages": STAGES, "workstations": workstations}
 
@@ -58,13 +63,15 @@ def run_order_action(order, action, reason=None, workstation=None):
 
 
 @frappe.whitelist()
-def run_piece_action(piece, action, reason=None):
+def run_piece_action(piece, action, reason=None, workstation=None):
     doc = frappe.get_doc("Factory Piece", piece)
     if not doc.is_exception:
         frappe.throw("Normal pieces are controlled by the whole Factory Order")
     if action == "start":
-        return doc.start_stage()
+        return doc.start_stage(workstation=workstation)
     if action == "complete":
+        if workstation and doc.workstation and doc.workstation != workstation:
+            frappe.throw(f"Piece {piece} is running on {doc.workstation}, not {workstation}")
         return doc.complete_stage()
     if action == "block":
         return doc.block_stage(reason)
