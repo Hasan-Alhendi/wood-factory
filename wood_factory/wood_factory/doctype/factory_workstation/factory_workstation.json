@@ -1,16 +1,22 @@
 {
  "actions": [], "allow_rename": 1, "autoname": "field:workstation_name", "creation": "2026-07-11 00:00:00.000000", "doctype": "DocType", "engine": "InnoDB",
- "field_order": ["workstation_name", "stage", "status", "minutes_per_day", "efficiency_percent", "effective_minutes_per_day", "unavailable_reason", "notes"],
+ "field_order": ["workstation_name", "stage", "company", "currency", "status", "minutes_per_day", "efficiency_percent", "effective_minutes_per_day", "track_labor_cost", "default_labor_hourly_cost", "track_machine_cost", "machine_hourly_cost", "unavailable_reason", "notes"],
  "fields": [
   {"fieldname":"workstation_name","fieldtype":"Data","in_list_view":1,"label":"Workstation Name","reqd":1,"unique":1},
   {"fieldname":"stage","fieldtype":"Select","in_list_view":1,"label":"Production Stage","options":"Cutting\nEdge Banding\nDrilling\nAssembly\nQuality Inspection\nPacking","reqd":1},
+  {"fieldname":"company","fieldtype":"Link","label":"Company","options":"Company"},
+  {"fetch_from":"company.default_currency","fieldname":"currency","fieldtype":"Link","label":"Cost Currency","options":"Currency","read_only":1},
   {"default":"Active","fieldname":"status","fieldtype":"Select","in_list_view":1,"label":"Status","options":"Active\nMaintenance\nOut of Service","reqd":1},
   {"default":"480","fieldname":"minutes_per_day","fieldtype":"Int","label":"Capacity Minutes / Day","reqd":1},
   {"default":"100","fieldname":"efficiency_percent","fieldtype":"Percent","label":"Efficiency Percent","reqd":1},
   {"fieldname":"effective_minutes_per_day","fieldtype":"Float","label":"Effective Minutes / Day","read_only":1},
+  {"default":"1","fieldname":"track_labor_cost","fieldtype":"Check","label":"Track Labor Cost"},
+  {"depends_on":"track_labor_cost","fieldname":"default_labor_hourly_cost","fieldtype":"Currency","label":"Default Labor Cost / Hour","options":"currency"},
+  {"default":"1","fieldname":"track_machine_cost","fieldtype":"Check","label":"Track Machine Cost"},
+  {"depends_on":"track_machine_cost","fieldname":"machine_hourly_cost","fieldtype":"Currency","label":"Machine Cost / Hour","options":"currency"},
   {"depends_on":"eval:doc.status!='Active'","fieldname":"unavailable_reason","fieldtype":"Small Text","label":"Unavailable Reason"},
   {"fieldname":"notes","fieldtype":"Small Text","label":"Notes"}
  ],
- "modified":"2026-07-11 00:00:00.000000","modified_by":"Administrator","module":"Wood Factory","name":"Factory Workstation","owner":"Administrator",
- "permissions":[{"create":1,"delete":1,"read":1,"report":1,"role":"System Manager","write":1},{"create":1,"read":1,"report":1,"role":"Manufacturing Manager","write":1}],"sort_field":"stage","sort_order":"ASC","states":[]
+ "modified":"2026-07-12 00:00:00.000000","modified_by":"Administrator","module":"Wood Factory","name":"Factory Workstation","owner":"Administrator",
+ "permissions":[{"create":1,"delete":1,"read":1,"report":1,"role":"System Manager","write":1},{"create":1,"read":1,"report":1,"role":"Manufacturing Manager","write":1},{"read":1,"report":1,"role":"Accounts Manager"}],"sort_field":"stage","sort_order":"ASC","states":[]
 }
