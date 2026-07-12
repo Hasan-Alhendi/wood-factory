@@ -18,7 +18,7 @@
   {"fieldname": "responsible", "fieldtype": "Link", "label": "Worker", "options": "User"},
   {"fieldname": "actual_minutes", "fieldtype": "Float", "label": "Actual Minutes", "precision": "2"},
   {"fieldname": "hourly_rate", "fieldtype": "Currency", "label": "Hourly Cost Rate", "options": "currency"},
-  {"fieldname": "transaction_type", "fieldtype": "Select", "in_list_view": 1, "label": "Transaction Type", "options": "Customer Material Consumption\nInternal Replacement Material\nLabor Cost\nMachine Cost\nWaste Cost\nAdjustment", "reqd": 1},
+  {"fieldname": "transaction_type", "fieldtype": "Select", "in_list_view": 1, "label": "Transaction Type", "options": "Customer Material Consumption\nInternal Replacement Material\nRemnant Recovery\nRemnant Material Consumption\nLabor Cost\nMachine Cost\nWaste Cost\nAdjustment", "reqd": 1},
   {"fieldname": "company", "fieldtype": "Link", "label": "Company", "options": "Company", "reqd": 1},
   {"fieldname": "cost_center", "fieldtype": "Link", "label": "Cost Center", "options": "Cost Center"},
   {"fieldname": "project", "fieldtype": "Link", "label": "Project", "options": "Project"},
