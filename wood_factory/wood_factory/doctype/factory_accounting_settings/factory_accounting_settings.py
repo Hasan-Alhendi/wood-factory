@@ -9,15 +9,21 @@ class FactoryAccountingSettings(Document):
         self._validate_cost_center(self.customer_cost_center, "Customer Order Cost Center")
         self._validate_cost_center(self.internal_rework_cost_center, "Internal Rework Cost Center")
         self._validate_expense_account(self.material_expense_account, "Material Consumption Expense Account")
+        self._validate_expense_account(self.labor_expense_account, "Direct Labor Expense Account")
+        self._validate_expense_account(self.machine_expense_account, "Machine Operation Expense Account")
         self._validate_expense_account(self.internal_rework_expense_account, "Internal Rework Expense Account")
         if self.require_cost_center and not self.customer_cost_center:
             frappe.throw("Customer Order Cost Center is required when accounting integration is enabled")
         if self.require_cost_center and not self.internal_rework_cost_center:
             frappe.throw("Internal Rework Cost Center is required when accounting integration is enabled")
-        if not self.material_expense_account:
-            frappe.throw("Material Consumption Expense Account is required when accounting integration is enabled")
-        if not self.internal_rework_expense_account:
-            frappe.throw("Internal Rework Expense Account is required when accounting integration is enabled")
+        for fieldname, label in (
+            ("material_expense_account", "Material Consumption Expense Account"),
+            ("labor_expense_account", "Direct Labor Expense Account"),
+            ("machine_expense_account", "Machine Operation Expense Account"),
+            ("internal_rework_expense_account", "Internal Rework Expense Account"),
+        ):
+            if not self.get(fieldname):
+                frappe.throw(f"{label} is required when accounting integration is enabled")
 
     def _validate_cost_center(self, name, label):
         if not name:
