@@ -12,7 +12,7 @@ def get_worker_hourly_rate(user, company, workstation=None):
             filters={"user": user, "company": company, "active": 1, "effective_from": ["<=", nowdate()]},
             fields=["hourly_cost"],
             order_by="effective_from desc, modified desc",
-            limit=1,
+            limit_page_length=1,
         )
         if rows:
             rate = flt(rows[0].hourly_cost)
@@ -90,6 +90,10 @@ def post_order_stage_cost(factory_order, stage_row_name):
         missing.append("labor rate")
     if cint(workstation.get("track_machine_cost")) and machine_rate <= 0:
         missing.append("machine rate")
+    if labor_cost > 0 and not labor_ledger:
+        missing.append("labor cost ledger")
+    if machine_cost > 0 and not machine_ledger:
+        missing.append("machine cost ledger")
     costing_status = "Partial" if missing else "Posted"
     frappe.db.set_value(
         "Factory Order Stage",
@@ -117,11 +121,7 @@ def post_order_stage_cost(factory_order, stage_row_name):
 
 def post_exception_piece_stage_cost(piece, stage, minutes, workstation, responsible):
     piece_doc = frappe.get_doc("Factory Piece", piece) if isinstance(piece, str) else piece
-    exception = frappe.db.get_value(
-        "Piece Exception",
-        {"replacement_piece": piece_doc.name},
-        "name",
-    ) or frappe.db.get_value(
+    exception = frappe.db.get_value("Piece Exception", {"replacement_piece": piece_doc.name}, "name") or frappe.db.get_value(
         "Piece Exception",
         {"factory_piece": piece_doc.name, "status": ["not in", ["Resolved", "Cancelled"]]},
         "name",
@@ -173,6 +173,10 @@ def post_exception_piece_stage_cost(piece, stage, minutes, workstation, responsi
         missing.append("labor rate")
     if cint(workstation_costing.get("track_machine_cost")) and machine_rate <= 0:
         missing.append("machine rate")
+    if labor_cost > 0 and not labor_ledger:
+        missing.append("labor cost ledger")
+    if machine_cost > 0 and not machine_ledger:
+        missing.append("machine cost ledger")
     status = "Partial" if missing else "Posted"
     sync_factory_order_actual_costs(piece_doc.factory_order)
     return {
@@ -203,7 +207,11 @@ def sync_factory_order_actual_costs(factory_order):
         ), 2)
 
     customer_material = total("Customer Material Consumption", 1)
-    rework_material = total("Internal Replacement Material", 0)
+    internal_new_material = total("Internal Replacement Material", 0)
+    remnant_material = total("Remnant Material Consumption", 0)
+    remnant_recovery_signed = total("Remnant Recovery", 0)
+    remnant_recovery = abs(min(remnant_recovery_signed, 0))
+    rework_material = flt(internal_new_material + remnant_material, 2)
     customer_labor = total("Labor Cost", 1)
     rework_labor = total("Labor Cost", 0)
     customer_machine = total("Machine Cost", 1)
@@ -212,12 +220,13 @@ def sync_factory_order_actual_costs(factory_order):
     factory_error_cost = total(billable=0)
     actual_total = total()
 
-    waste_cost = 0
+    gross_unused_cost = 0
     for row in rows:
         if row.transaction_type not in ("Customer Material Consumption", "Internal Replacement Material") or not row.cutting_order:
             continue
         waste_percent = flt(frappe.db.get_value("Cutting Order", row.cutting_order, "waste_percent"))
-        waste_cost += flt(row.amount) * waste_percent / 100
+        gross_unused_cost += flt(row.amount) * waste_percent / 100
+    net_waste_cost = max(gross_unused_cost - remnant_recovery, 0)
 
     stage_rows = frappe.get_all(
         "Factory Order Stage",
@@ -226,7 +235,11 @@ def sync_factory_order_actual_costs(factory_order):
         order_by="idx asc",
     )
     completed = [row for row in stage_rows if row.status == "Completed"]
-    if completed and any((row.costing_status or "Pending") != "Posted" for row in completed):
+    exception_partial = frappe.db.count(
+        "Factory Piece",
+        {"factory_order": factory_order, "is_exception": 1, "last_stage_costing_status": "Partial"},
+    ) if frappe.db.exists("DocType", "Factory Piece") else 0
+    if exception_partial or (completed and any((row.costing_status or "Pending") != "Posted" for row in completed)):
         costing_status = "Partial"
     elif stage_rows and all(row.status in ("Completed", "Skipped") for row in stage_rows):
         costing_status = "Complete"
@@ -238,14 +251,15 @@ def sync_factory_order_actual_costs(factory_order):
     values = {
         "customer_material_cost": customer_material,
         "internal_rework_material_cost": rework_material,
-        "total_posted_material_cost": flt(customer_material + rework_material, 2),
+        "remnant_recovery_value": flt(remnant_recovery, 2),
+        "total_posted_material_cost": flt(customer_material + rework_material - remnant_recovery, 2),
         "customer_labor_cost": customer_labor,
         "internal_rework_labor_cost": rework_labor,
         "customer_machine_cost": customer_machine,
         "internal_rework_machine_cost": rework_machine,
         "total_labor_cost": flt(customer_labor + rework_labor, 2),
         "total_machine_cost": flt(customer_machine + rework_machine, 2),
-        "waste_cost_within_material": flt(waste_cost, 2),
+        "waste_cost_within_material": flt(net_waste_cost, 2),
         "customer_attributable_cost": customer_cost,
         "factory_error_cost": factory_error_cost,
         "total_actual_cost": actual_total,
