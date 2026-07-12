@@ -2,6 +2,7 @@ frappe.pages["factory-dashboard"].on_page_load = function (wrapper) {
     const page = frappe.ui.make_app_page({parent: wrapper, title: __("Factory Dashboard"), single_column: true});
     page.main.addClass("factory-dashboard-page");
     page.set_primary_action(__("Refresh"), () => load_dashboard(page));
+    page.add_inner_button(__("Control Center"), () => frappe.set_route("factory-control-center"));
     page.add_inner_button(__("Production Schedule"), () => frappe.set_route("factory-schedule"));
     page.add_inner_button(__("Capacity Planning"), () => frappe.set_route("factory-capacity"));
     page.add_inner_button(__("Worker Screen"), () => frappe.set_route("factory-worker"));
