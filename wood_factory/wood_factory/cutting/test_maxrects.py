@@ -27,6 +27,27 @@ class TestMaxRects(unittest.TestCase):
         result = optimize(1000, 1000, pieces, kerf=3, algorithm="MaxRects Best Area Fit")
         self.assertEqual(len(result["boards"]), 2)
 
+    def test_reusable_free_rectangles_do_not_overlap(self):
+        pieces = [
+            {"piece_id": "A", "source_row": 1, "part_name": "A", "width": 450, "height": 350, "allow_rotation": True, "grain_direction": "Any"},
+            {"piece_id": "B", "source_row": 2, "part_name": "B", "width": 300, "height": 250, "allow_rotation": True, "grain_direction": "Any"},
+            {"piece_id": "C", "source_row": 3, "part_name": "C", "width": 200, "height": 500, "allow_rotation": True, "grain_direction": "Any"},
+        ]
+        result = optimize(1000, 1000, pieces, kerf=3, algorithm="MaxRects Best Area Fit")
+        for board in result["boards"]:
+            free = board["free_rectangles"]
+            for index, first in enumerate(free):
+                self.assertGreater(first["width"], 0)
+                self.assertGreater(first["height"], 0)
+                for second in free[index + 1:]:
+                    overlaps = not (
+                        second["x"] >= first["x"] + first["width"]
+                        or second["x"] + second["width"] <= first["x"]
+                        or second["y"] >= first["y"] + first["height"]
+                        or second["y"] + second["height"] <= first["y"]
+                    )
+                    self.assertFalse(overlaps)
+
 
 if __name__ == "__main__":
     unittest.main()
