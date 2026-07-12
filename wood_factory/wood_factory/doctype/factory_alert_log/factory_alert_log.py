@@ -16,13 +16,18 @@ class FactoryAlertLog(Document):
         if self.status == "Resolved":
             return self._summary()
         self.db_set({"status": "Resolved", "resolved_at": now_datetime()})
-        frappe.db.set_value(
+        todos = frappe.get_all(
             "ToDo",
-            {"reference_type": self.reference_doctype, "reference_name": self.reference_name, "status": "Open"},
-            "status",
-            "Closed",
-            update_modified=False,
+            filters={
+                "reference_type": self.reference_doctype,
+                "reference_name": self.reference_name,
+                "description": ["like", f"[Factory Alert:{self.name}]%"],
+                "status": "Open",
+            },
+            pluck="name",
         )
+        for todo in todos:
+            frappe.db.set_value("ToDo", todo, "status", "Closed", update_modified=False)
         return self._summary()
 
     def _summary(self):
