@@ -14,6 +14,10 @@ class FactoryAccountingSettings(Document):
             frappe.throw("Customer Order Cost Center is required when accounting integration is enabled")
         if self.require_cost_center and not self.internal_rework_cost_center:
             frappe.throw("Internal Rework Cost Center is required when accounting integration is enabled")
+        if not self.material_expense_account:
+            frappe.throw("Material Consumption Expense Account is required when accounting integration is enabled")
+        if not self.internal_rework_expense_account:
+            frappe.throw("Internal Rework Expense Account is required when accounting integration is enabled")
 
     def _validate_cost_center(self, name, label):
         if not name:
