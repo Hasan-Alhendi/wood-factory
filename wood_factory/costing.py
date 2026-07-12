@@ -1,15 +1,16 @@
 import frappe
-from frappe.utils import cint, flt, now_datetime, nowdate
+from frappe.utils import cint, flt, getdate, now_datetime, nowdate
 
 from wood_factory.accounting import post_operating_cost, resolve_accounting_context
 
 
-def get_worker_hourly_rate(user, company, workstation=None):
+def get_worker_hourly_rate(user, company, workstation=None, effective_date=None):
     rate = 0
+    effective_date = effective_date or nowdate()
     if user and frappe.db.exists("DocType", "Factory Worker Cost Rate"):
         rows = frappe.get_all(
             "Factory Worker Cost Rate",
-            filters={"user": user, "company": company, "active": 1, "effective_from": ["<=", nowdate()]},
+            filters={"user": user, "company": company, "active": 1, "effective_from": ["<=", effective_date]},
             fields=["hourly_cost"],
             order_by="effective_from desc, modified desc",
             limit_page_length=1,
@@ -47,7 +48,7 @@ def post_order_stage_cost(factory_order, stage_row_name):
 
     workstation = get_workstation_costing(row.workstation)
     company = order.company or workstation.get("company") or resolve_accounting_context(order).company
-    labor_rate = get_worker_hourly_rate(row.responsible, company, row.workstation) if cint(workstation.get("track_labor_cost")) else 0
+    labor_rate = get_worker_hourly_rate(row.responsible, company, row.workstation, getdate(row.completed_at) if row.completed_at else None) if cint(workstation.get("track_labor_cost")) else 0
     machine_rate = flt(workstation.get("machine_hourly_cost"), 2) if cint(workstation.get("track_machine_cost")) else 0
     minutes = flt(row.actual_minutes, 2)
     labor_cost = flt(minutes / 60 * labor_rate, 2)
@@ -119,7 +120,7 @@ def post_order_stage_cost(factory_order, stage_row_name):
     }
 
 
-def post_exception_piece_stage_cost(piece, stage, minutes, workstation, responsible):
+def post_exception_piece_stage_cost(piece, stage, minutes, workstation, responsible, costed_on=None):
     piece_doc = frappe.get_doc("Factory Piece", piece) if isinstance(piece, str) else piece
     exception = frappe.db.get_value("Piece Exception", {"replacement_piece": piece_doc.name}, "name") or frappe.db.get_value(
         "Piece Exception",
@@ -129,7 +130,8 @@ def post_exception_piece_stage_cost(piece, stage, minutes, workstation, responsi
     workstation_costing = get_workstation_costing(workstation)
     order = frappe.get_doc("Factory Order", piece_doc.factory_order)
     company = order.company or workstation_costing.get("company") or resolve_accounting_context(order, internal_replacement=True).company
-    labor_rate = get_worker_hourly_rate(responsible, company, workstation) if cint(workstation_costing.get("track_labor_cost")) else 0
+    rate_date = getdate(costed_on) if costed_on else nowdate()
+    labor_rate = get_worker_hourly_rate(responsible, company, workstation, rate_date) if cint(workstation_costing.get("track_labor_cost")) else 0
     machine_rate = flt(workstation_costing.get("machine_hourly_cost"), 2) if cint(workstation_costing.get("track_machine_cost")) else 0
     minutes = flt(minutes, 2)
     labor_cost = flt(minutes / 60 * labor_rate, 2)
@@ -178,15 +180,104 @@ def post_exception_piece_stage_cost(piece, stage, minutes, workstation, responsi
     if machine_cost > 0 and not machine_ledger:
         missing.append("machine cost ledger")
     status = "Partial" if missing else "Posted"
+    event = _upsert_piece_stage_cost(
+        piece_doc=piece_doc,
+        exception=exception,
+        stage=stage,
+        workstation=workstation,
+        responsible=responsible,
+        minutes=minutes,
+        labor_rate=labor_rate,
+        machine_rate=machine_rate,
+        labor_cost=labor_cost,
+        machine_cost=machine_cost,
+        status=status,
+        missing=missing,
+        costed_on=costed_on,
+    )
+    cumulative_status = _sync_piece_costing_status(piece_doc.name)
     sync_factory_order_actual_costs(piece_doc.factory_order)
     return {
         "status": status,
+        "cumulative_status": cumulative_status,
+        "stage_cost_event": event.name,
         "labor_cost": labor_cost,
         "machine_cost": machine_cost,
         "labor_ledger": labor_ledger.name if labor_ledger else None,
         "machine_ledger": machine_ledger.name if machine_ledger else None,
         "missing": missing,
     }
+
+
+def recalculate_exception_piece_costs(factory_order):
+    if not frappe.db.exists("DocType", "Factory Piece Stage Cost"):
+        return []
+    events = frappe.get_all(
+        "Factory Piece Stage Cost",
+        filters={"factory_order": factory_order, "costing_status": ["in", ["Pending", "Partial"]]},
+        fields=["factory_piece", "production_stage", "actual_minutes", "workstation", "responsible", "costed_on"],
+        order_by="costed_on asc",
+    )
+    results = []
+    for event in events:
+        result = post_exception_piece_stage_cost(
+            piece=event.factory_piece,
+            stage=event.production_stage,
+            minutes=event.actual_minutes,
+            workstation=event.workstation,
+            responsible=event.responsible,
+            costed_on=event.costed_on,
+        )
+        results.append({"factory_piece": event.factory_piece, "stage": event.production_stage, **result})
+    return results
+
+
+def _upsert_piece_stage_cost(piece_doc, exception, stage, workstation, responsible, minutes, labor_rate, machine_rate, labor_cost, machine_cost, status, missing, costed_on=None):
+    key = f"Factory Piece|{piece_doc.name}|{stage}"
+    name = frappe.db.get_value("Factory Piece Stage Cost", {"event_key": key}, "name")
+    values = {
+        "factory_order": piece_doc.factory_order,
+        "piece_exception": exception,
+        "factory_piece": piece_doc.name,
+        "production_stage": stage,
+        "workstation": workstation,
+        "responsible": responsible,
+        "actual_minutes": flt(minutes, 2),
+        "labor_hourly_rate": flt(labor_rate, 2),
+        "machine_hourly_rate": flt(machine_rate, 2),
+        "labor_cost": flt(labor_cost, 2),
+        "machine_cost": flt(machine_cost, 2),
+        "costing_status": status,
+        "costed_on": costed_on or now_datetime(),
+        "missing_details": ", ".join(missing),
+    }
+    if name:
+        doc = frappe.get_doc("Factory Piece Stage Cost", name)
+        doc.flags.factory_cost_update = True
+        doc.update(values)
+        doc.save(ignore_permissions=True)
+        return doc
+    doc = frappe.new_doc("Factory Piece Stage Cost")
+    doc.update({"event_key": key, **values})
+    doc.flags.factory_cost_insert = True
+    doc.insert(ignore_permissions=True)
+    return doc
+
+
+def _sync_piece_costing_status(factory_piece):
+    rows = frappe.get_all(
+        "Factory Piece Stage Cost",
+        filters={"factory_piece": factory_piece},
+        fields=["costing_status"],
+    ) if frappe.db.exists("DocType", "Factory Piece Stage Cost") else []
+    if not rows:
+        status = "Pending"
+    elif any(row.costing_status != "Posted" for row in rows):
+        status = "Partial"
+    else:
+        status = "Posted"
+    frappe.db.set_value("Factory Piece", factory_piece, "costing_status", status, update_modified=False)
+    return status
 
 
 def sync_factory_order_actual_costs(factory_order):
@@ -237,7 +328,7 @@ def sync_factory_order_actual_costs(factory_order):
     completed = [row for row in stage_rows if row.status == "Completed"]
     exception_partial = frappe.db.count(
         "Factory Piece",
-        {"factory_order": factory_order, "is_exception": 1, "last_stage_costing_status": "Partial"},
+        {"factory_order": factory_order, "is_exception": 1, "costing_status": "Partial"},
     ) if frappe.db.exists("DocType", "Factory Piece") else 0
     if exception_partial or (completed and any((row.costing_status or "Pending") != "Posted" for row in completed)):
         costing_status = "Partial"
