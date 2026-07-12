@@ -133,7 +133,11 @@ def sync_factory_order_material_totals(factory_order):
         return
     rows = frappe.get_all(
         "Factory Cost Ledger",
-        filters={"factory_order": factory_order, "status": "Posted", "transaction_type": ["in", ["Customer Material Consumption", "Internal Replacement Material"]]},
+        filters={
+            "factory_order": factory_order,
+            "status": "Posted",
+            "transaction_type": ["in", ["Customer Material Consumption", "Internal Replacement Material"]],
+        },
         fields=["transaction_type", "amount"],
     ) if frappe.db.exists("DocType", "Factory Cost Ledger") else []
     customer_cost = sum(flt(row.amount) for row in rows if row.transaction_type == "Customer Material Consumption")
@@ -145,7 +149,26 @@ def sync_factory_order_material_totals(factory_order):
         "accounting_status": "Posted" if rows else "Not Posted",
     }
     available = {field.fieldname for field in frappe.get_meta("Factory Order").fields}
-    frappe.db.set_value("Factory Order", factory_order, {key: value for key, value in values.items() if key in available}, update_modified=False)
+    frappe.db.set_value(
+        "Factory Order",
+        factory_order,
+        {key: value for key, value in values.items() if key in available},
+        update_modified=False,
+    )
+
+
+def validate_stock_entry_cancel(doc, method=None):
+    cutting_orders = frappe.get_all(
+        "Cutting Order",
+        filters={"material_stock_entry": doc.name},
+        fields=["name", "status"],
+    ) if frappe.db.exists("DocType", "Cutting Order") else []
+    for row in cutting_orders:
+        if row.status != "Cancelled":
+            frappe.throw(
+                f"Stock Entry {doc.name} belongs to Cutting Order {row.name}. "
+                "Set the Cutting Order status to Cancelled before cancelling its material issue."
+            )
 
 
 def on_stock_entry_cancel(doc, method=None):
@@ -160,6 +183,16 @@ def on_stock_entry_cancel(doc, method=None):
     for row in ledgers:
         frappe.db.set_value("Factory Cost Ledger", row.name, "status", "Reversed", update_modified=False)
         affected_orders.add(row.factory_order)
+
+    cutting_orders = frappe.get_all(
+        "Cutting Order",
+        filters={"material_stock_entry": doc.name},
+        fields=["name", "factory_order"],
+    ) if frappe.db.exists("DocType", "Cutting Order") else []
+    for row in cutting_orders:
+        frappe.db.set_value("Cutting Order", row.name, "accounting_status", "Reversed", update_modified=False)
+        affected_orders.add(row.factory_order)
+
     for factory_order in affected_orders:
         sync_factory_order_material_totals(factory_order)
 
