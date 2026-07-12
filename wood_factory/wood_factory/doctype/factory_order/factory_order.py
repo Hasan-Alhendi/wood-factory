@@ -60,11 +60,13 @@ class FactoryOrder(Document):
         for row in self.production_stages or []:
             if not row.workstation:
                 continue
-            workstation = frappe.db.get_value("Factory Workstation", row.workstation, ["stage", "status"], as_dict=True)
+            workstation = frappe.db.get_value("Factory Workstation", row.workstation, ["stage", "status", "company"], as_dict=True)
             if not workstation:
                 frappe.throw(f"Workstation {row.workstation} does not exist")
             if workstation.stage != row.stage:
                 frappe.throw(f"Workstation {row.workstation} belongs to {workstation.stage}, not {row.stage}")
+            if self.company and workstation.company and workstation.company != self.company:
+                frappe.throw(f"Workstation {row.workstation} belongs to {workstation.company}, not {self.company}")
             if row.status in ("Ready", "In Progress") and workstation.status != "Active":
                 frappe.throw(f"Workstation {row.workstation} is not active")
 
@@ -118,7 +120,12 @@ class FactoryOrder(Document):
                 row.workstation = self._best_workstation(row.stage, exclude_order=self.name)
 
     def _best_workstation(self, stage, exclude_order=None):
-        workstations = frappe.get_all("Factory Workstation", filters={"stage": stage, "status": "Active"}, fields=["name", "effective_minutes_per_day"])
+        workstations = frappe.get_all(
+            "Factory Workstation",
+            filters={"stage": stage, "status": "Active"},
+            fields=["name", "effective_minutes_per_day", "company"],
+        )
+        workstations = [row for row in workstations if not self.company or not row.company or row.company == self.company]
         if not workstations:
             return None
         loads = dict(frappe.db.sql(
@@ -145,8 +152,11 @@ class FactoryOrder(Document):
             row.workstation = self._best_workstation(row.stage, exclude_order=self.name)
         if not row.workstation:
             frappe.throw(f"No active workstation is available for {row.stage}")
-        if frappe.db.get_value("Factory Workstation", row.workstation, "status") != "Active":
+        workstation = frappe.db.get_value("Factory Workstation", row.workstation, ["status", "company"], as_dict=True)
+        if not workstation or workstation.status != "Active":
             frappe.throw(f"Workstation {row.workstation} is not active. Reassign the stage before starting")
+        if self.company and workstation.company and workstation.company != self.company:
+            frappe.throw(f"Workstation {row.workstation} belongs to {workstation.company}, not {self.company}")
         now = now_datetime()
         resumed = row.status == "Blocked"
         if resumed and row.blocked_at:
