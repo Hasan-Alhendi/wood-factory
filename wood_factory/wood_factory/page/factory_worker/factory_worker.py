@@ -35,12 +35,19 @@ def get_worker_queue(stage=None, workstation=None):
     queued_orders.sort(key=lambda row: (-row.queue_score, row.expected_delivery_date or "9999-12-31", row.modified))
     for position, order in enumerate(queued_orders, 1):
         order["queue_position"] = position
+
     exception_filters = {"is_exception": 1, "status": ["not in", ["Completed", "Cancelled"]]}
     if stage:
         exception_filters["current_stage"] = stage
+    exceptions = frappe.get_all(
+        "Factory Piece",
+        filters=exception_filters,
+        fields=["name", "piece_uid", "factory_order", "part_name", "width_mm", "height_mm", "current_stage", "status", "block_reason", "responsible", "workstation", "costing_status", "last_stage_actual_minutes", "last_stage_costing_status"],
+        order_by="modified asc",
+    )
     if workstation:
-        exception_filters["workstation"] = ["in", [workstation, ""]]
-    exceptions = frappe.get_all("Factory Piece", filters=exception_filters, fields=["name", "piece_uid", "factory_order", "part_name", "width_mm", "height_mm", "current_stage", "status", "block_reason", "responsible", "workstation", "last_stage_actual_minutes", "last_stage_costing_status"], order_by="modified asc")
+        exceptions = [row for row in exceptions if not row.workstation or row.workstation == workstation]
+
     workstations = frappe.get_all("Factory Workstation", filters={"status": "Active", **({"stage": stage} if stage else {})}, fields=["name", "stage"], order_by="stage asc, name asc")
     return {"user": user, "stage": stage, "workstation": workstation, "orders": queued_orders, "exceptions": exceptions, "stages": STAGES, "workstations": workstations}
 
