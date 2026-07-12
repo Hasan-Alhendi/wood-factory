@@ -138,19 +138,23 @@ class FactoryPiece(Document):
         remnant.consume()
 
     def _resolve_workstation(self, preferred=None):
+        order_company = frappe.db.get_value("Factory Order", self.factory_order, "company")
         workstation = preferred or self.workstation
         if workstation:
-            values = frappe.db.get_value("Factory Workstation", workstation, ["stage", "status"], as_dict=True)
+            values = frappe.db.get_value("Factory Workstation", workstation, ["stage", "status", "company"], as_dict=True)
             if not values or values.stage != self.current_stage:
                 frappe.throw(f"Workstation {workstation} does not belong to {self.current_stage}")
             if values.status != "Active":
                 frappe.throw(f"Workstation {workstation} is not active")
+            if order_company and values.company and values.company != order_company:
+                frappe.throw(f"Workstation {workstation} belongs to {values.company}, not {order_company}")
             return workstation
         candidates = frappe.get_all(
             "Factory Workstation",
             filters={"stage": self.current_stage, "status": "Active"},
-            fields=["name", "effective_minutes_per_day"],
+            fields=["name", "effective_minutes_per_day", "company"],
         )
+        candidates = [row for row in candidates if not order_company or not row.company or row.company == order_company]
         if not candidates:
             frappe.throw(f"No active workstation is available for {self.current_stage}")
         loads = {}
@@ -169,6 +173,7 @@ class FactoryPiece(Document):
             "status": self.status,
             "responsible": self.responsible,
             "workstation": self.workstation,
+            "costing_status": self.costing_status,
             "last_stage_actual_minutes": self.last_stage_actual_minutes,
             "last_stage_labor_cost": self.last_stage_labor_cost,
             "last_stage_machine_cost": self.last_stage_machine_cost,
