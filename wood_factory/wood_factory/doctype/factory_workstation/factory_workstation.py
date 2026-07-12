@@ -22,6 +22,8 @@ class FactoryWorkstation(Document):
                 self.company = get_accounting_settings().company
             except Exception:
                 self.company = None
+        if (flt(self.default_labor_hourly_cost) > 0 or flt(self.machine_hourly_cost) > 0) and not self.company:
+            frappe.throw("Company is required when a workstation has hourly costing rates")
         if self.company and not self.currency:
             self.currency = frappe.db.get_value("Company", self.company, "default_currency")
         self.effective_minutes_per_day = flt(self.minutes_per_day * flt(self.efficiency_percent) / 100, 2) if self.status == "Active" else 0
@@ -39,21 +41,27 @@ class FactoryWorkstation(Document):
     def _queue_rebalancing(self, apply=False):
         waiting = frappe.db.sql("""
             select s.name as stage_row, s.parent as `order`, s.stage, s.workstation, s.status,
-                   o.priority, o.expected_delivery_date, o.delay_days, o.modified
+                   o.priority, o.expected_delivery_date, o.delay_days, o.modified, o.company
             from `tabFactory Order Stage` s
             inner join `tabFactory Order` o on o.name=s.parent
             where s.workstation=%s and s.status in ('Ready','Blocked')
             order by case o.priority when 'Urgent' then 1 when 'High' then 2 when 'Normal' then 3 else 4 end,
                      o.delay_days desc, o.expected_delivery_date asc, o.modified asc
         """, self.name, as_dict=True)
-        candidates = frappe.get_all("Factory Workstation", filters={"stage": self.stage, "status": "Active", "name": ["!=", self.name]}, fields=["name", "effective_minutes_per_day"])
+        candidates = frappe.get_all(
+            "Factory Workstation",
+            filters={"stage": self.stage, "status": "Active", "name": ["!=", self.name]},
+            fields=["name", "effective_minutes_per_day", "company"],
+        )
+        candidates = [row for row in candidates if not self.company or not row.company or row.company == self.company]
         loads = dict(frappe.db.sql("""
             select s.workstation, count(*) from `tabFactory Order Stage` s
             where s.stage=%s and s.workstation is not null and s.status in ('Ready','In Progress','Blocked') group by s.workstation
         """, self.stage))
         moves = []
         for job in waiting:
-            target = self._best_target(candidates, loads)
+            eligible = [row for row in candidates if not job.company or not row.company or row.company == job.company]
+            target = self._best_target(eligible, loads)
             moves.append({"order": job.order, "stage_row": job.stage_row, "priority": job.priority or "Normal", "from_workstation": self.name, "to_workstation": target})
             if target:
                 loads[target] = loads.get(target, 0) + 1
