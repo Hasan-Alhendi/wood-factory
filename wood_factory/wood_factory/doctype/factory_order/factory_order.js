@@ -1,4 +1,9 @@
 frappe.ui.form.on("Factory Order", {
+    setup(frm) {
+        frm.set_query("cost_center", () => ({filters: {company: frm.doc.company, is_group: 0}}));
+        frm.set_query("rework_cost_center", () => ({filters: {company: frm.doc.company, is_group: 0}}));
+        frm.set_query("project", () => ({filters: {company: frm.doc.company}}));
+    },
     refresh(frm) {
         if (!frm.is_new() && !(frm.doc.production_stages || []).length) {
             frm.add_custom_button(__("Initialize Production Stages"), () => run_order_method(frm, "initialize_production_stages"), __("Production"));
@@ -6,6 +11,11 @@ frappe.ui.form.on("Factory Order", {
         if (!frm.is_new()) {
             frm.add_custom_button(__("Factory Pieces"), () => frappe.set_route("List", "Factory Piece", {factory_order: frm.doc.name}), __("View"));
             frm.add_custom_button(__("Production Timeline"), () => frappe.set_route("factory-order-timeline", frm.doc.name), __("View"));
+            frm.add_custom_button(__("Cutting Orders"), () => frappe.set_route("List", "Cutting Order", {factory_order: frm.doc.name}), __("View"));
+            frm.add_custom_button(__("Factory Cost Ledger"), () => frappe.set_route("List", "Factory Cost Ledger", {factory_order: frm.doc.name}), __("Accounting"));
+        }
+        if (frappe.user.has_role("System Manager") || frappe.user.has_role("Accounts Manager")) {
+            frm.add_custom_button(__("Accounting Settings"), () => frappe.set_route("Form", "Factory Accounting Settings"), __("Accounting"));
         }
         const active = (frm.doc.production_stages || []).find(row => ["Ready", "In Progress", "Blocked"].includes(row.status));
         if (!active) return;
