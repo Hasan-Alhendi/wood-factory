@@ -47,6 +47,8 @@ class FactoryPiece(Document):
         if self.status not in ("Ready", "Blocked") or self.current_stage == "Completed":
             frappe.throw("Piece is not ready to start")
         self.workstation = self._resolve_workstation(workstation)
+        if self.current_stage == "Cutting":
+            self._consume_reserved_remnant()
         now = now_datetime()
         if self.status == "Blocked" and self.blocked_at:
             self.blocked_minutes = flt(self.blocked_minutes) + time_diff_in_seconds(now, self.blocked_at) / 60
@@ -116,6 +118,24 @@ class FactoryPiece(Document):
         })
         self.reload()
         return {**self._summary(), "costing": costing}
+
+    def _consume_reserved_remnant(self):
+        exception = frappe.db.get_value(
+            "Piece Exception",
+            {"replacement_piece": self.name, "status": ["not in", ["Resolved", "Cancelled"]]},
+            ["name", "suggested_remnant"],
+            as_dict=True,
+        )
+        if not exception or not exception.suggested_remnant:
+            return
+        remnant = frappe.get_doc("Board Remnant", exception.suggested_remnant)
+        if remnant.status == "Consumed":
+            if remnant.reserved_for_piece != self.name:
+                frappe.throw(f"Remnant {remnant.name} was consumed for another piece")
+            return
+        if remnant.status != "Reserved" or remnant.reserved_for_piece != self.name:
+            frappe.throw(f"Remnant {remnant.name} must be reserved for this replacement piece before cutting")
+        remnant.consume()
 
     def _resolve_workstation(self, preferred=None):
         workstation = preferred or self.workstation
