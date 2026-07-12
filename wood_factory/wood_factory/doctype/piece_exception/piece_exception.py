@@ -48,6 +48,7 @@ class PieceException(Document):
         replacement.blocked_minutes = 0
         replacement.block_reason = None
         replacement.completed_at = None
+        replacement.costing_status = "Pending"
         replacement.last_stage_actual_minutes = 0
         replacement.last_stage_labor_cost = 0
         replacement.last_stage_machine_cost = 0
