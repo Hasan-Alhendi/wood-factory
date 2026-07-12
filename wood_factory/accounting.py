@@ -8,6 +8,8 @@ DEFAULT_SETTINGS = {
     "customer_cost_center": None,
     "internal_rework_cost_center": None,
     "material_expense_account": None,
+    "labor_expense_account": None,
+    "machine_expense_account": None,
     "internal_rework_expense_account": None,
     "default_project": None,
     "require_cost_center": 1,
@@ -27,13 +29,13 @@ def get_accounting_settings():
     return settings
 
 
-def resolve_accounting_context(factory_order, internal_replacement=False):
+def resolve_accounting_context(factory_order, internal_replacement=False, expense_kind="material"):
     order = frappe.get_doc("Factory Order", factory_order) if isinstance(factory_order, str) else factory_order
     settings = get_accounting_settings()
     sales_order_company = frappe.db.get_value("Sales Order", order.sales_order, "company") if order.sales_order else None
     company = order.get("company") or sales_order_company or settings.company
     if not company:
-        frappe.throw("Company is required before posting factory material consumption")
+        frappe.throw("Company is required before posting factory costs")
     if settings.company and settings.company != company:
         frappe.throw(f"Factory Accounting Settings use {settings.company}, but Factory Order {order.name} uses {company}")
 
@@ -43,7 +45,11 @@ def resolve_accounting_context(factory_order, internal_replacement=False):
         cost_owner = "Factory Internal Rework"
     else:
         cost_center = order.get("cost_center") or settings.customer_cost_center
-        expense_account = settings.material_expense_account
+        expense_account = {
+            "material": settings.material_expense_account,
+            "labor": settings.labor_expense_account,
+            "machine": settings.machine_expense_account,
+        }.get(expense_kind, settings.material_expense_account)
         cost_owner = f"Customer Order {order.name}"
 
     project = order.get("project") or settings.default_project
@@ -51,7 +57,7 @@ def resolve_accounting_context(factory_order, internal_replacement=False):
         if cint(settings.require_cost_center) and not cost_center:
             frappe.throw("Configure the required factory Cost Center in Factory Accounting Settings or Factory Order")
         if not expense_account:
-            frappe.throw("Configure the material Expense Account in Factory Accounting Settings")
+            frappe.throw(f"Configure the {expense_kind.title()} Expense Account in Factory Accounting Settings")
         _validate_dimension_company("Cost Center", cost_center, company)
         _validate_dimension_company("Account", expense_account, company)
         _validate_dimension_company("Project", project, company)
@@ -91,7 +97,7 @@ def append_material_issue_item(stock_entry, requirement, context):
 
 
 def post_material_cost(factory_order, cutting_order, stock_entry, piece_exception=None, internal_replacement=False):
-    context = resolve_accounting_context(factory_order, internal_replacement=internal_replacement)
+    context = resolve_accounting_context(factory_order, internal_replacement=internal_replacement, expense_kind="material")
     amount = get_stock_entry_value(stock_entry)
     transaction_type = "Internal Replacement Material" if internal_replacement else "Customer Material Consumption"
     ledger = None
@@ -108,8 +114,53 @@ def post_material_cost(factory_order, cutting_order, stock_entry, piece_exceptio
             accounting_document=stock_entry.name,
             remarks=stock_entry.remarks,
         )
-    sync_factory_order_material_totals(factory_order)
+    sync_factory_order_costs(factory_order)
     return {"amount": amount, "currency": context.currency, "cost_ledger": ledger.name if ledger else None, "context": context}
+
+
+def post_operating_cost(
+    factory_order,
+    transaction_key,
+    transaction_type,
+    amount,
+    expense_kind,
+    internal_rework=False,
+    factory_order_stage=None,
+    factory_piece=None,
+    piece_exception=None,
+    production_stage=None,
+    workstation=None,
+    responsible=None,
+    actual_minutes=0,
+    hourly_rate=0,
+    remarks=None,
+):
+    amount = flt(amount, 2)
+    if amount <= 0:
+        return None
+    context = resolve_accounting_context(factory_order, internal_replacement=internal_rework, expense_kind=expense_kind)
+    if not context.create_cost_ledger:
+        return None
+    ledger = _create_cost_ledger(
+        transaction_key=transaction_key,
+        factory_order=factory_order,
+        transaction_type=transaction_type,
+        context=context,
+        amount=amount,
+        factory_order_stage=factory_order_stage,
+        factory_piece=factory_piece,
+        piece_exception=piece_exception,
+        production_stage=production_stage,
+        workstation=workstation,
+        responsible=responsible,
+        actual_minutes=actual_minutes,
+        hourly_rate=hourly_rate,
+        accounting_document_type="Factory Order" if not factory_piece else "Factory Piece",
+        accounting_document=factory_order if not factory_piece else factory_piece,
+        remarks=remarks,
+    )
+    sync_factory_order_costs(factory_order)
+    return ledger
 
 
 def get_stock_entry_value(stock_entry):
@@ -126,6 +177,14 @@ def get_stock_entry_value(stock_entry):
             amount = qty * flt(row.get("valuation_rate") or row.get("basic_rate"))
         total += amount
     return flt(abs(total), 2)
+
+
+def sync_factory_order_costs(factory_order):
+    try:
+        from wood_factory.costing import sync_factory_order_actual_costs
+        return sync_factory_order_actual_costs(factory_order)
+    except ImportError:
+        return sync_factory_order_material_totals(factory_order)
 
 
 def sync_factory_order_material_totals(factory_order):
@@ -149,12 +208,8 @@ def sync_factory_order_material_totals(factory_order):
         "accounting_status": "Posted" if rows else "Not Posted",
     }
     available = {field.fieldname for field in frappe.get_meta("Factory Order").fields}
-    frappe.db.set_value(
-        "Factory Order",
-        factory_order,
-        {key: value for key, value in values.items() if key in available},
-        update_modified=False,
-    )
+    frappe.db.set_value("Factory Order", factory_order, {key: value for key, value in values.items() if key in available}, update_modified=False)
+    return values
 
 
 def validate_stock_entry_cancel(doc, method=None):
@@ -194,10 +249,28 @@ def on_stock_entry_cancel(doc, method=None):
         affected_orders.add(row.factory_order)
 
     for factory_order in affected_orders:
-        sync_factory_order_material_totals(factory_order)
+        sync_factory_order_costs(factory_order)
 
 
-def _create_cost_ledger(transaction_key, factory_order, transaction_type, context, amount, accounting_document_type=None, accounting_document=None, cutting_order=None, piece_exception=None, remarks=None):
+def _create_cost_ledger(
+    transaction_key,
+    factory_order,
+    transaction_type,
+    context,
+    amount,
+    accounting_document_type=None,
+    accounting_document=None,
+    cutting_order=None,
+    piece_exception=None,
+    factory_piece=None,
+    factory_order_stage=None,
+    production_stage=None,
+    workstation=None,
+    responsible=None,
+    actual_minutes=0,
+    hourly_rate=0,
+    remarks=None,
+):
     existing = frappe.db.get_value("Factory Cost Ledger", {"transaction_key": transaction_key}, "name")
     if existing:
         return frappe.get_doc("Factory Cost Ledger", existing)
@@ -207,6 +280,13 @@ def _create_cost_ledger(transaction_key, factory_order, transaction_type, contex
         "factory_order": factory_order,
         "cutting_order": cutting_order,
         "piece_exception": piece_exception,
+        "factory_piece": factory_piece,
+        "factory_order_stage": factory_order_stage,
+        "production_stage": production_stage,
+        "workstation": workstation,
+        "responsible": responsible,
+        "actual_minutes": flt(actual_minutes, 2),
+        "hourly_rate": flt(hourly_rate, 2),
         "transaction_type": transaction_type,
         "company": context.company,
         "cost_center": context.cost_center,
