@@ -40,6 +40,12 @@ def get_workstation_costing(workstation):
     return values or frappe._dict()
 
 
+def _use_posted_values(ledger, rate, amount):
+    if not ledger or ledger.status != "Posted":
+        return flt(rate, 2), flt(amount, 2)
+    return flt(ledger.hourly_rate, 2), flt(ledger.amount, 2)
+
+
 def post_order_stage_cost(factory_order, stage_row_name):
     order = frappe.get_doc("Factory Order", factory_order) if isinstance(factory_order, str) else factory_order
     row = next((item for item in order.production_stages if item.name == stage_row_name), None)
@@ -85,6 +91,8 @@ def post_order_stage_cost(factory_order, stage_row_name):
         hourly_rate=machine_rate,
         remarks=f"Actual machine cost for {row.stage} on Factory Order {order.name}",
     )
+    labor_rate, labor_cost = _use_posted_values(labor_ledger, labor_rate, labor_cost)
+    machine_rate, machine_cost = _use_posted_values(machine_ledger, machine_rate, machine_cost)
 
     missing = []
     if cint(workstation.get("track_labor_cost")) and labor_rate <= 0:
@@ -169,6 +177,8 @@ def post_exception_piece_stage_cost(piece, stage, minutes, workstation, responsi
         hourly_rate=machine_rate,
         remarks=f"Factory-funded replacement machine cost for {piece_doc.name} at {stage}",
     )
+    labor_rate, labor_cost = _use_posted_values(labor_ledger, labor_rate, labor_cost)
+    machine_rate, machine_cost = _use_posted_values(machine_ledger, machine_rate, machine_cost)
 
     missing = []
     if cint(workstation_costing.get("track_labor_cost")) and labor_rate <= 0:
