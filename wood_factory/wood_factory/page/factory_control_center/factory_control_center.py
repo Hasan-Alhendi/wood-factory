@@ -20,10 +20,27 @@ def get_control_center_data():
         "out_of_service": sum(1 for row in workstations if row.status == "Out of Service"),
     }
     unavailable = [row for row in workstations if row.status != "Active"]
+    alert_logs = frappe.get_all(
+        "Factory Alert Log",
+        filters={"status": ["in", ["Open", "Acknowledged", "Escalated"]]},
+        fields=[
+            "name", "alert_type", "severity", "status", "reference_doctype", "reference_name",
+            "description", "responsible", "escalated_to", "first_detected_at", "last_detected_at",
+        ],
+        order_by="FIELD(severity, 'Critical', 'High', 'Medium', 'Low'), first_detected_at asc",
+    )
+    alert_summary = {
+        "active": len(alert_logs),
+        "critical": sum(1 for row in alert_logs if row.severity == "Critical"),
+        "escalated": sum(1 for row in alert_logs if row.status == "Escalated"),
+        "acknowledged": sum(1 for row in alert_logs if row.status == "Acknowledged"),
+    }
     return {
         "dashboard": dashboard,
         "schedule": schedule,
         "workstations": workstation_summary,
         "unavailable_workstations": unavailable[:20],
+        "alerts": alert_summary,
+        "alert_logs": alert_logs[:30],
         "generated_at": frappe.utils.now_datetime(),
     }
