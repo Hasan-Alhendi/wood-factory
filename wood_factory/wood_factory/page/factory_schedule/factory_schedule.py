@@ -12,7 +12,8 @@ def get_production_schedule():
     orders = _get_scheduled_orders()
     _apply_eta_forecast(orders)
     bottlenecks = get_bottleneck_analysis()
-    return {"orders": orders, "summary": _summary(orders), "bottlenecks": bottlenecks}
+    recommendations = get_production_recommendations(orders=orders, bottlenecks=bottlenecks)
+    return {"orders": orders, "summary": _summary(orders), "bottlenecks": bottlenecks, "recommendations": recommendations}
 
 
 @frappe.whitelist()
@@ -32,7 +33,6 @@ def get_bottleneck_analysis():
         where o.status in %(active)s and s.status in ('Ready','In Progress','Blocked')
     """, {"active": ACTIVE}, as_dict=True)
     stages = {}
-    workstation_load = {}
     now = now_datetime()
     for row in rows:
         estimate = flt(history.get(row.stage) or DEFAULT_ESTIMATES.get(row.stage, 30), 2)
@@ -46,7 +46,6 @@ def get_bottleneck_analysis():
         data["in_progress"] += 1 if row.status == "In Progress" else 0
         data["urgent_orders"] += 1 if row.priority == "Urgent" else 0
         if row.workstation:
-            workstation_load[row.workstation] = workstation_load.get(row.workstation, 0) + estimate
             data["workstations"][row.workstation] = data["workstations"].get(row.workstation, 0) + estimate
     analysis = []
     for stage, data in stages.items():
@@ -57,7 +56,7 @@ def get_bottleneck_analysis():
         station_rows = []
         for name, load in data["workstations"].items():
             station_capacity = workstation_capacity.get(name, 0)
-            station_rows.append({"workstation": name, "load_minutes": round(load, 2), "load_percent": round(load / station_capacity * 100, 1) if station_capacity else 999})
+            station_rows.append({"workstation": name, "load_minutes": round(load, 2), "capacity_minutes": station_capacity, "load_percent": round(load / station_capacity * 100, 1) if station_capacity else 999})
         station_rows.sort(key=lambda item: (-item["load_percent"], item["workstation"]))
         data["workstations"] = station_rows
         data["primary_workstation"] = station_rows[0]["workstation"] if station_rows else None
@@ -68,6 +67,68 @@ def get_bottleneck_analysis():
         item["rank"] = index
         item["is_current_bottleneck"] = index == 1 and item["severity"] != "Healthy"
     return analysis
+
+
+@frappe.whitelist()
+def get_production_recommendations(orders=None, bottlenecks=None):
+    orders = orders or _get_scheduled_orders()
+    if orders and not orders[0].get("estimated_completion"):
+        _apply_eta_forecast(orders)
+    bottlenecks = bottlenecks or get_bottleneck_analysis()
+    recommendations = []
+
+    for bottleneck in bottlenecks:
+        if bottleneck["severity"] == "Healthy":
+            continue
+        stations = bottleneck.get("workstations") or []
+        if len(stations) >= 2:
+            busiest = stations[0]
+            lightest = min(stations[1:], key=lambda row: row["load_percent"])
+            gap = busiest["load_percent"] - lightest["load_percent"]
+            if gap >= 25:
+                movable = max(int(round((busiest["load_minutes"] - lightest["load_minutes"]) / max(DEFAULT_ESTIMATES.get(bottleneck["stage"], 30) * 2, 1))), 1)
+                recommendations.append({
+                    "type": "Rebalance Queue", "severity": "High", "stage": bottleneck["stage"],
+                    "title": f"Move waiting work from {busiest['workstation']} to {lightest['workstation']}",
+                    "details": f"Move approximately {movable} waiting order(s). Current workstation loads are {busiest['load_percent']}% and {lightest['load_percent']}%.",
+                    "from_workstation": busiest["workstation"], "to_workstation": lightest["workstation"], "estimated_orders": movable,
+                })
+        if bottleneck["load_percent"] >= 100 and bottleneck["capacity_minutes_per_day"]:
+            overload = max(bottleneck["load_minutes"] - bottleneck["capacity_minutes_per_day"], 0)
+            overtime = min(max(round(overload / 60, 1), 1), 4)
+            reduced_days = round(bottleneck["load_minutes"] / (bottleneck["capacity_minutes_per_day"] + overtime * 60), 2)
+            recommendations.append({
+                "type": "Temporary Overtime", "severity": "High" if bottleneck["severity"] == "Critical" else "Medium", "stage": bottleneck["stage"],
+                "title": f"Add {overtime} overtime hour(s) to {bottleneck['stage']}",
+                "details": f"Estimated queue duration may drop from {bottleneck['queue_delay_days']} to {reduced_days} day(s).",
+                "overtime_hours": overtime, "current_queue_days": bottleneck["queue_delay_days"], "estimated_queue_days": reduced_days,
+            })
+        if bottleneck["blocked_orders"]:
+            recommendations.append({
+                "type": "Resolve Blocks", "severity": "Critical" if bottleneck["blocked_orders"] >= 3 else "High", "stage": bottleneck["stage"],
+                "title": f"Resolve {bottleneck['blocked_orders']} blocked order(s) in {bottleneck['stage']}",
+                "details": "Blocked work is consuming queue position without progressing. Review block reasons before adding more work.",
+            })
+
+    risky = [row for row in orders if row.eta_risk in ("At Risk", "Late")]
+    urgent = [row for row in orders if row.priority == "Urgent"]
+    if risky and urgent:
+        recommendations.append({
+            "type": "Protect Delivery Dates", "severity": "Critical", "stage": None,
+            "title": "Do not insert another urgent order without simulation",
+            "details": f"There are already {len(risky)} at-risk/late order(s) and {len(urgent)} urgent order(s). Run What-if Simulation before changing queue priority.",
+        })
+    unassigned = [row for row in orders if row.current_stage and not row.workstation]
+    if unassigned:
+        recommendations.append({
+            "type": "Assign Workstations", "severity": "High", "stage": None,
+            "title": f"Assign workstations to {len(unassigned)} order(s)",
+            "details": "Unassigned work cannot be forecast or balanced accurately and may delay the production queue.",
+        })
+    recommendations.sort(key=lambda row: ({"Critical": 0, "High": 1, "Medium": 2, "Low": 3}.get(row["severity"], 9), row.get("stage") or "", row["type"]))
+    for index, row in enumerate(recommendations, 1):
+        row["rank"] = index
+    return recommendations[:12]
 
 
 @frappe.whitelist()
