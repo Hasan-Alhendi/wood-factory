@@ -27,8 +27,10 @@ def get_control_center_data():
             "name", "alert_type", "severity", "status", "reference_doctype", "reference_name",
             "description", "responsible", "escalated_to", "first_detected_at", "last_detected_at",
         ],
-        order_by="FIELD(severity, 'Critical', 'High', 'Medium', 'Low'), first_detected_at asc",
+        order_by="first_detected_at asc",
     )
+    severity_order = {"Critical": 0, "High": 1, "Medium": 2, "Low": 3}
+    alert_logs.sort(key=lambda row: (severity_order.get(row.severity, 9), row.first_detected_at or "", row.name))
     alert_summary = {
         "active": len(alert_logs),
         "critical": sum(1 for row in alert_logs if row.severity == "Critical"),
