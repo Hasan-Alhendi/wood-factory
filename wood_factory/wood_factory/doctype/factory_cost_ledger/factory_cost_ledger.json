@@ -1,0 +1,41 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "creation": "2026-07-12 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": ["transaction_key", "factory_order", "cutting_order", "piece_exception", "transaction_type", "company", "cost_center", "project", "expense_account", "amount", "currency", "customer_billable", "status", "accounting_document_type", "accounting_document", "posted_on", "remarks"],
+ "fields": [
+  {"fieldname": "transaction_key", "fieldtype": "Data", "label": "Transaction Key", "read_only": 1, "reqd": 1, "unique": 1},
+  {"fieldname": "factory_order", "fieldtype": "Link", "in_list_view": 1, "label": "Factory Order", "options": "Factory Order", "reqd": 1},
+  {"fieldname": "cutting_order", "fieldtype": "Link", "label": "Cutting Order", "options": "Cutting Order"},
+  {"fieldname": "piece_exception", "fieldtype": "Link", "label": "Piece Exception", "options": "Piece Exception"},
+  {"fieldname": "transaction_type", "fieldtype": "Select", "in_list_view": 1, "label": "Transaction Type", "options": "Customer Material Consumption\nInternal Replacement Material\nLabor Cost\nMachine Cost\nWaste Cost\nAdjustment", "reqd": 1},
+  {"fieldname": "company", "fieldtype": "Link", "label": "Company", "options": "Company", "reqd": 1},
+  {"fieldname": "cost_center", "fieldtype": "Link", "label": "Cost Center", "options": "Cost Center"},
+  {"fieldname": "project", "fieldtype": "Link", "label": "Project", "options": "Project"},
+  {"fieldname": "expense_account", "fieldtype": "Link", "label": "Expense Account", "options": "Account"},
+  {"fieldname": "amount", "fieldtype": "Currency", "in_list_view": 1, "label": "Amount", "reqd": 1},
+  {"fieldname": "currency", "fieldtype": "Link", "label": "Currency", "options": "Currency", "reqd": 1},
+  {"default": "1", "fieldname": "customer_billable", "fieldtype": "Check", "label": "Customer Billable"},
+  {"default": "Posted", "fieldname": "status", "fieldtype": "Select", "in_list_view": 1, "label": "Status", "options": "Posted\nReversed", "read_only": 1, "reqd": 1},
+  {"fieldname": "accounting_document_type", "fieldtype": "Link", "label": "Accounting Document Type", "options": "DocType"},
+  {"fieldname": "accounting_document", "fieldtype": "Dynamic Link", "label": "Accounting Document", "options": "accounting_document_type"},
+  {"fieldname": "posted_on", "fieldtype": "Datetime", "in_list_view": 1, "label": "Posted On", "read_only": 1, "reqd": 1},
+  {"fieldname": "remarks", "fieldtype": "Small Text", "label": "Remarks"}
+ ],
+ "modified": "2026-07-12 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Wood Factory",
+ "name": "Factory Cost Ledger",
+ "owner": "Administrator",
+ "permissions": [
+  {"read": 1, "report": 1, "role": "Manufacturing Manager"},
+  {"read": 1, "report": 1, "role": "Accounts Manager"},
+  {"read": 1, "report": 1, "role": "System Manager"}
+ ],
+ "sort_field": "posted_on",
+ "sort_order": "DESC",
+ "states": []
+}
