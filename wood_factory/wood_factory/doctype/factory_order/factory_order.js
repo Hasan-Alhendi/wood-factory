@@ -12,10 +12,13 @@ frappe.ui.form.on("Factory Order", {
             frm.add_custom_button(__("Factory Pieces"), () => frappe.set_route("List", "Factory Piece", {factory_order: frm.doc.name}), __("View"));
             frm.add_custom_button(__("Production Timeline"), () => frappe.set_route("factory-order-timeline", frm.doc.name), __("View"));
             frm.add_custom_button(__("Cutting Orders"), () => frappe.set_route("List", "Cutting Order", {factory_order: frm.doc.name}), __("View"));
-            frm.add_custom_button(__("Factory Cost Ledger"), () => frappe.set_route("List", "Factory Cost Ledger", {factory_order: frm.doc.name}), __("Accounting"));
+            frm.add_custom_button(__("Factory Cost Ledger"), () => frappe.set_route("List", "Factory Cost Ledger", {factory_order: frm.doc.name}), __("Costing"));
+            frm.add_custom_button(__("Recalculate Actual Cost"), () => recalculate_costing(frm), __("Costing"));
         }
         if (frappe.user.has_role("System Manager") || frappe.user.has_role("Accounts Manager")) {
-            frm.add_custom_button(__("Accounting Settings"), () => frappe.set_route("Form", "Factory Accounting Settings"), __("Accounting"));
+            frm.add_custom_button(__("Accounting Settings"), () => frappe.set_route("Form", "Factory Accounting Settings"), __("Costing"));
+            frm.add_custom_button(__("Worker Cost Rates"), () => frappe.set_route("List", "Factory Worker Cost Rate"), __("Costing"));
+            frm.add_custom_button(__("Workstation Cost Rates"), () => frappe.set_route("List", "Factory Workstation"), __("Costing"));
         }
         const active = (frm.doc.production_stages || []).find(row => ["Ready", "In Progress", "Blocked"].includes(row.status));
         if (!active) return;
@@ -48,7 +51,20 @@ frappe.ui.form.on("Factory Order Stage", {
 
 function run_order_method(frm, method) { frm.call(method).then(() => frm.reload_doc()); }
 function run_stage_method(frm, method, row) {
-    frm.call(method, {row_name: row.name}).then(r => { const workstation = r.message && r.message.workstation; frappe.show_alert({message: workstation ? __("Assigned to {0}", [workstation]) : __("Production stage updated"), indicator: "green"}); frm.reload_doc(); });
+    frm.call(method, {row_name: row.name}).then(r => {
+        const workstation = r.message && r.message.workstation;
+        const costing = r.message && r.message.costing;
+        const message = costing ? __("Stage completed. Labor: {0}, Machine: {1}, Costing: {2}", [costing.labor_cost || 0, costing.machine_cost || 0, costing.status]) : workstation ? __("Assigned to {0}", [workstation]) : __("Production stage updated");
+        frappe.show_alert({message, indicator: costing && costing.status === "Partial" ? "orange" : "green"});
+        frm.reload_doc();
+    });
+}
+function recalculate_costing(frm) {
+    frm.call("recalculate_actual_costing").then(r => {
+        const totals = (r.message || {}).totals || {};
+        frappe.show_alert({message: __("Actual cost recalculated: {0}", [totals.total_actual_cost || 0]), indicator: totals.costing_status === "Partial" ? "orange" : "green"});
+        frm.reload_doc();
+    });
 }
 function block_stage(frm, row) {
     frappe.prompt([{fieldname: "reason", fieldtype: "Small Text", label: __("Block Reason"), reqd: 1}], values => {
