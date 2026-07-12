@@ -202,14 +202,15 @@ class FactoryOrder(Document):
 
     @frappe.whitelist()
     def recalculate_actual_costing(self):
-        from wood_factory.costing import post_order_stage_cost, sync_factory_order_actual_costs
-        results = []
+        from wood_factory.costing import post_order_stage_cost, recalculate_exception_piece_costs, sync_factory_order_actual_costs
+        stage_results = []
         for row in self.production_stages or []:
             if row.status == "Completed" and (row.costing_status or "Pending") != "Posted":
-                results.append({"stage": row.stage, **post_order_stage_cost(self.name, row.name)})
+                stage_results.append({"stage": row.stage, **post_order_stage_cost(self.name, row.name)})
+        piece_results = recalculate_exception_piece_costs(self.name)
         totals = sync_factory_order_actual_costs(self.name)
         self.reload()
-        return {"stages": results, "totals": totals}
+        return {"stages": stage_results, "exception_piece_stages": piece_results, "totals": totals}
 
     def _record_event(self, event_type, stage=None, reason=None, details=None, reference_doctype=None, reference_name=None):
         event = frappe.new_doc("Factory Order Event")
