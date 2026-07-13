@@ -2,6 +2,8 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import date_diff, flt, now_datetime, nowdate, time_diff_in_seconds
 
+from wood_factory.security import can_view_financials, require_accounting, require_planning, require_stage_access
+
 
 STAGES = ("Cutting", "Edge Banding", "Drilling", "Assembly", "Quality Inspection", "Packing")
 
@@ -91,18 +93,20 @@ class FactoryOrder(Document):
 
     @frappe.whitelist()
     def initialize_production_stages(self):
+        require_planning()
         if self.production_stages:
             frappe.throw("Production stages already exist")
         for index, stage in enumerate(STAGES):
             self.append("production_stages", {"stage": stage, "status": "Ready" if index == 0 else "Pending", "costing_status": "Pending"})
         self._assign_ready_workstations()
-        self.save()
+        self.save(ignore_permissions=True)
         self._sync_normal_pieces()
         self._record_event("Stages Initialized", details="Production stages initialized")
         return self._execution_summary()
 
     @frappe.whitelist()
     def auto_assign_stage(self, row_name):
+        require_planning()
         row = self._stage(row_name)
         if row.status not in ("Pending", "Ready", "Blocked"):
             frappe.throw("Only pending, ready, or blocked stages can be assigned")
@@ -110,7 +114,7 @@ class FactoryOrder(Document):
         row.workstation = self._best_workstation(row.stage, exclude_order=self.name)
         if not row.workstation:
             frappe.throw(f"No active workstation is available for {row.stage}")
-        self.save()
+        self.save(ignore_permissions=True)
         self._record_event("Workstation Assigned", row.stage, details=f"{previous or 'Unassigned'} → {row.workstation}", reference_doctype="Factory Workstation", reference_name=row.workstation)
         return {"workstation": row.workstation, **self._execution_summary()}
 
@@ -143,6 +147,7 @@ class FactoryOrder(Document):
     @frappe.whitelist()
     def start_stage(self, row_name):
         row = self._stage(row_name)
+        require_stage_access(row.stage)
         if row.status not in ("Ready", "Blocked"):
             frappe.throw("Only a ready or blocked stage can be started")
         active = next((stage for stage in self.production_stages if stage.name != row.name and stage.status == "In Progress"), None)
@@ -166,7 +171,7 @@ class FactoryOrder(Document):
             row.started_at = now
         row.status = "In Progress"
         row.responsible = frappe.session.user
-        self.save()
+        self.save(ignore_permissions=True)
         self._sync_normal_pieces(row)
         self._record_event("Stage Resumed" if resumed else "Stage Started", row.stage, details=f"Stage handled by {frappe.session.user} on {row.workstation}", reference_doctype="Factory Workstation", reference_name=row.workstation)
         return self._execution_summary()
@@ -174,14 +179,17 @@ class FactoryOrder(Document):
     @frappe.whitelist()
     def block_stage(self, row_name, reason):
         row = self._stage(row_name)
+        require_stage_access(row.stage)
         if row.status != "In Progress":
             frappe.throw("Only an in-progress stage can be blocked")
+        if row.responsible and row.responsible != frappe.session.user:
+            require_planning()
         if not reason:
             frappe.throw("Block reason is required")
         row.status = "Blocked"
         row.block_reason = reason
         row.blocked_at = now_datetime()
-        self.save()
+        self.save(ignore_permissions=True)
         self._sync_normal_pieces(row)
         self._record_event("Stage Blocked", row.stage, reason=reason, reference_doctype="Factory Order Stage", reference_name=row.name)
         return self._execution_summary()
@@ -189,8 +197,11 @@ class FactoryOrder(Document):
     @frappe.whitelist()
     def complete_stage(self, row_name):
         row = self._stage(row_name)
+        require_stage_access(row.stage)
         if row.status != "In Progress":
             frappe.throw("Only an in-progress stage can be completed")
+        if row.responsible and row.responsible != frappe.session.user:
+            require_planning()
         now = now_datetime()
         row.completed_at = now
         elapsed = time_diff_in_seconds(now, row.started_at) / 60 if row.started_at else 0
@@ -202,16 +213,22 @@ class FactoryOrder(Document):
             next_row.status = "Ready"
             if not next_row.workstation:
                 next_row.workstation = self._best_workstation(next_row.stage, exclude_order=self.name)
-        self.save()
+        self.save(ignore_permissions=True)
         from wood_factory.costing import post_order_stage_cost
         costing = post_order_stage_cost(self.name, row.name)
         self.reload()
         self._sync_normal_pieces(next_row)
         self._record_event("Stage Completed", row.stage, details=f"Actual work time: {row.actual_minutes} minute(s) on {row.workstation or 'unassigned workstation'}; costing: {costing.get('status')}", reference_doctype="Factory Workstation" if row.workstation else "Factory Order Stage", reference_name=row.workstation or row.name)
-        return {**self._execution_summary(), "costing": costing}
+        response = self._execution_summary()
+        if can_view_financials():
+            response["costing"] = costing
+        else:
+            response["costing"] = {"status": costing.get("status"), "missing": costing.get("missing", [])}
+        return response
 
     @frappe.whitelist()
     def recalculate_actual_costing(self):
+        require_accounting()
         from wood_factory.costing import post_order_stage_cost, recalculate_exception_piece_costs, sync_factory_order_actual_costs
         stage_results = []
         for row in self.production_stages or []:
@@ -245,4 +262,7 @@ class FactoryOrder(Document):
         return row
 
     def _execution_summary(self):
-        return {"status": self.status, "current_stage": self.current_stage, "current_responsible": self.current_responsible, "progress_percent": self.progress_percent, "costing_status": self.costing_status, "total_actual_cost": self.total_actual_cost}
+        summary = {"status": self.status, "current_stage": self.current_stage, "current_responsible": self.current_responsible, "progress_percent": self.progress_percent, "costing_status": self.costing_status}
+        if can_view_financials():
+            summary["total_actual_cost"] = self.total_actual_cost
+        return summary
