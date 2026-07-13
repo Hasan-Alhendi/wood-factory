@@ -1,113 +1,159 @@
 # Wood Factory End-to-End Testing
 
 This document is the execution gate before UX polish and production readiness.
-None of the commands below are run automatically by installation or migration.
+None of these commands run automatically during installation or migration.
 
-## What the automated acceptance suite verifies
+## Mandatory environment rule
 
-The suite creates or repairs only records marked as Wood Factory demo data and validates:
+Do **not** run the automated tests or generate acceptance data on the live customer site.
+Use a dedicated staging/test site restored from a recent backup, for example:
+
+```text
+almadina-test.horizontechco.com
+```
+
+In the commands below:
+
+```text
+<LIVE_SITE>    = almadina.horizontechco.com
+<TEST_SITE>    = the isolated staging/test site
+<COMPANY>      = the ERPNext Company used by the factory
+```
+
+## What the acceptance suite verifies
+
+The suite validates:
 
 1. a normal order waiting for cutting;
 2. a delayed order blocked at edge banding with an active alert;
 3. a damaged piece replaced from an exact matching remnant;
 4. a wrong-dimension piece replaced from a new factory-funded board;
-5. recovery of the reusable new-board remainder into factory remnants;
+5. recovery of reusable board remainder into factory remnants;
 6. a completed order ready for delivery;
 7. a historically delivered order with timeline and costing records;
-8. customer-billable and factory-funded costs remain separated;
-9. all factory roles exist;
-10. every scenario contains Sales Order, Factory Order, Cutting Order, board layouts, and physical pieces;
-11. generating the dataset twice does not duplicate orders, exceptions, remnants, or alerts.
+8. separation of customer-billable and factory-funded costs;
+9. installation of all factory roles;
+10. Sales Order, Factory Order, Cutting Order, layouts, and physical pieces for every scenario;
+11. idempotency when demo generation is repeated.
 
-The primary implementation is:
+Implementation:
 
 ```text
 wood_factory/e2e.py
 wood_factory/tests/test_e2e_factory_flow.py
 ```
 
-## Safety rules
+## Safety controls in code
 
-- Take a database and files backup before migration.
-- Test on `almadina.horizontechco.com` before any other customer site.
-- Do not merge the branch into `main` before migration and tests pass.
-- Start with `include_stock=0`; this validates factory operations without posting a stock receipt.
-- Use `include_stock=1` only after confirming warehouses, stock accounts, valuation, and stock-freeze dates.
-- Demo records use a company-specific `WF-DEMO-...` prefix and `[WOOD_FACTORY_DEMO]` marker.
-- The generator does not delete production records.
+`run_factory_acceptance` refuses to create records unless:
 
-## 1. Back up the site
-
-Run from the bench container or bench host:
-
-```bash
-bench --site almadina.horizontechco.com backup --with-files
+```text
+confirm_demo = 1
 ```
 
-Record the generated database, public-files, and private-files backup paths before continuing.
+Stock generation additionally requires:
 
-## 2. Verify the branch before updating
+```text
+confirm_stock = 1
+```
+
+The generated records use a company-specific `WF-DEMO-...` prefix and the marker:
+
+```text
+[WOOD_FACTORY_DEMO]
+```
+
+The generator does not delete production records, but it must still be used only on the isolated test site.
+
+## 1. Back up the live site
+
+```bash
+bench --site <LIVE_SITE> backup --with-files
+```
+
+Record the database, public-files, and private-files backup paths before continuing.
+
+## 2. Prepare the isolated test site
+
+Create a separate Frappe site or restore the backup into an existing staging site. Do not point the live domain to it.
+
+After restore, confirm:
+
+- the site database is separate from the live database;
+- Redis queues and scheduler operations cannot alter live records;
+- outgoing email is disabled or redirected;
+- payment, SMS, and external webhooks are disabled;
+- the test site has its own host name or is reachable only internally.
+
+The exact site creation and restore commands depend on the current Docker layout and will be executed during the server session.
+
+## 3. Update the application branch
+
+Run inside the Wood Factory app directory used by the test bench:
 
 ```bash
 cd /home/frappe/frappe-bench/apps/wood_factory
 git status
-git branch --show-current
 git fetch origin
 git switch agent/factory-order-architecture
 git pull --ff-only origin agent/factory-order-architecture
 ```
 
-The working tree must be clean before migration.
+The working tree must be clean.
 
-## 3. Migrate and build assets
+## 4. Migrate the test site and build assets
 
 ```bash
 cd /home/frappe/frappe-bench
-bench --site almadina.horizontechco.com migrate
+bench --site <TEST_SITE> migrate
 bench build --app wood_factory
-bench --site almadina.horizontechco.com clear-cache
-bench --site almadina.horizontechco.com clear-website-cache
+bench --site <TEST_SITE> clear-cache
+bench --site <TEST_SITE> clear-website-cache
 ```
 
-After migration, confirm that the site opens before running data tests.
+Confirm that the test site opens before running data tests.
 
-## 4. Run focused static and policy tests
+## 5. Run focused test modules
 
 ```bash
-bench --site almadina.horizontechco.com run-tests \
+bench --site <TEST_SITE> run-tests \
   --app wood_factory \
   --module wood_factory.tests.test_arabic_translations
 
-bench --site almadina.horizontechco.com run-tests \
+bench --site <TEST_SITE> run-tests \
   --app wood_factory \
   --module wood_factory.tests.test_security
 
-bench --site almadina.horizontechco.com run-tests \
+bench --site <TEST_SITE> run-tests \
   --app wood_factory \
   --module wood_factory.wood_factory.cutting.test_maxrects
 ```
 
-## 5. Run end-to-end tests inside the test runner
+## 6. Run the rollback-based E2E tests
 
 ```bash
-bench --site almadina.horizontechco.com run-tests \
+bench --site <TEST_SITE> run-tests \
   --app wood_factory \
   --module wood_factory.tests.test_e2e_factory_flow
 ```
 
-The test uses savepoints and rolls its records back after each test method.
+The test module uses database savepoints and checks:
 
-## 6. Run runtime acceptance without stock posting
+- the full acceptance suite;
+- repeated generation does not duplicate data;
+- validation does not change scenario states.
 
-This creates persistent demo scenarios so they can be inspected in the user interface:
+## 7. Create inspectable acceptance data without stock
+
+This step creates persistent demo records on the **test site only**:
 
 ```bash
-bench --site almadina.horizontechco.com execute \
+bench --site <TEST_SITE> execute \
   wood_factory.e2e.run_factory_acceptance \
-  --kwargs '{"company":"<ERPNext Company>","include_users":0,"include_stock":0}'
+  --kwargs '{"company":"<COMPANY>","include_users":0,"include_stock":0,"confirm_demo":1}'
 ```
 
-The output must contain:
+Required result:
 
 ```text
 passed: true
@@ -115,17 +161,17 @@ critical_failed: 0
 ready_for_runtime_testing: true
 ```
 
-A read-only recheck can be run at any time:
+Read-only recheck:
 
 ```bash
-bench --site almadina.horizontechco.com execute \
+bench --site <TEST_SITE> execute \
   wood_factory.e2e.validate_factory_acceptance \
-  --kwargs '{"company":"<ERPNext Company>"}'
+  --kwargs '{"company":"<COMPANY>"}'
 ```
 
-## 7. Manual bilingual checks
+## 8. Manual bilingual checks
 
-Log in once with an Arabic user and once with an English user. Verify:
+Log in once with an Arabic test user and once with an English test user. Verify:
 
 - Factory Control Center;
 - Factory Worker;
@@ -136,30 +182,28 @@ Log in once with an Arabic user and once with an English user. Verify:
 - measurements, money, document IDs, and QR/barcodes remain readable in RTL;
 - no important action or status remains untranslated.
 
-## 8. Manual operational checks
-
-Use the generated scenarios to confirm:
+## 9. Manual operational checks
 
 ### Normal order
 
 - the whole order appears in the cutting queue;
 - the assigned workstation is active;
-- starting, blocking, resuming, and completing a stage updates the order and timeline;
-- all normal pieces move with the whole order.
+- start, block, resume, and complete update the order and timeline;
+- normal pieces move with the whole order.
 
 ### Replacement from remnant
 
 - the remnant item exactly matches the replacement piece board item;
-- the remnant is reserved for the replacement piece;
+- the remnant is reserved for that replacement piece;
 - no new Cutting Order is created;
-- the customer is not billed for the replacement.
+- the customer is not billed.
 
 ### Replacement from a new board
 
-- the Cutting Order type is `Internal Replacement`;
+- Cutting Order type is `Internal Replacement`;
 - `Customer Billable` is disabled;
 - factory-funded material cost is recorded separately;
-- usable remainder is returned to Board Remnant inventory;
+- reusable remainder returns to Board Remnant inventory;
 - the replacement remains linked to the original customer order.
 
 ### Delivery
@@ -168,46 +212,58 @@ Use the generated scenarios to confirm:
 - completed production can be marked Ready for Delivery;
 - Confirm Delivered creates an auditable timeline event.
 
-## 9. Stock and accounting acceptance
+## 10. Stock and accounting acceptance
 
-Only after the previous steps pass, run with optional demo opening stock:
+Only after all non-stock checks pass, review the test company's warehouses, accounts, cost centers, valuation, and stock-freeze date.
+
+Then run on the test site:
 
 ```bash
-bench --site almadina.horizontechco.com execute \
+bench --site <TEST_SITE> execute \
   wood_factory.e2e.run_factory_acceptance \
-  --kwargs '{"company":"<ERPNext Company>","include_users":0,"include_stock":1}'
+  --kwargs '{"company":"<COMPANY>","include_users":0,"include_stock":1,"confirm_demo":1,"confirm_stock":1}'
 ```
 
-Then verify:
+Verify:
 
 - the demo Material Receipt is submitted once;
-- stock quantities exist in demo board and edge-band warehouses;
+- board and edge-band quantities exist in demo warehouses;
 - approving a customer Cutting Order creates a Material Issue;
-- board and edge-band quantities decrease;
-- Stock Entry company, cost center, expense account, and project are correct;
+- material quantities decrease correctly;
+- company, cost center, expense account, and project are correct;
 - internal replacement cost is not customer billable;
-- cancelling an eligible Stock Entry reverses the Factory Cost Ledger entry;
-- a Stock Entry cannot be cancelled after its remnants have been consumed or scrapped.
+- eligible cancellation reverses the Factory Cost Ledger entry;
+- cancellation is blocked after a related remnant has been consumed or scrapped.
 
-## 10. Full application suite
-
-After focused tests pass:
+## 11. Full application suite
 
 ```bash
-bench --site almadina.horizontechco.com run-tests --app wood_factory
+bench --site <TEST_SITE> run-tests --app wood_factory
 ```
 
-Save the full output for the production-readiness review.
+Save the complete output for the production-readiness review.
+
+## 12. Live deployment gate
+
+Only after the staging tests pass:
+
+1. take a fresh live backup;
+2. deploy the tested commit to the live bench;
+3. run migration and asset build on the live site;
+4. do **not** generate demo data on the live site;
+5. perform only a smoke test using one controlled real order;
+6. keep the rollback backup available until the smoke test is approved.
 
 ## Exit criteria
 
-The End-to-End stage is complete only when all of the following are true:
+The End-to-End stage is complete only when:
 
-- migration succeeds;
+- staging migration succeeds;
 - assets build successfully;
-- Arabic, security, MaxRects, and E2E test modules pass;
+- Arabic, security, MaxRects, and E2E modules pass;
 - runtime acceptance reports zero critical failures;
-- stock and accounting checks pass on the selected company;
-- Arabic and English user checks pass;
-- no production data is damaged or duplicated;
-- discovered defects are fixed and the tests are rerun.
+- stock and accounting checks pass;
+- Arabic and English manual checks pass;
+- no data is duplicated or corrupted;
+- discovered defects are fixed and all affected tests rerun;
+- the final tested commit is recorded before live deployment.
