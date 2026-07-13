@@ -7,7 +7,9 @@ frappe.pages["factory-reports"].on_page_load = function (wrapper) {
     page.add_field({label: __("Customer"), fieldname: "customer", fieldtype: "Link", options: "Customer", change: () => load_reports(page)});
     page.add_field({label: __("Order Status"), fieldname: "status", fieldtype: "Select", options: "\nNew\nConfirmed\nWaiting for Materials\nReady for Production\nIn Production\nQuality Inspection\nRework\nPacking\nReady for Delivery\nDelivered\nClosed\nCancelled", change: () => load_reports(page)});
     page.set_primary_action(__("Refresh"), () => load_reports(page));
-    page.add_inner_button(__("Detailed Profitability Report"), () => open_profitability_report(page));
+    page.add_inner_button(__("Profitability Report"), () => open_native_report(page, "Factory Order Profitability", true), __("Detailed Reports"));
+    page.add_inner_button(__("Waste Analysis"), () => open_native_report(page, "Factory Waste Analysis", true), __("Detailed Reports"));
+    page.add_inner_button(__("Production Performance"), () => open_native_report(page, "Factory Production Performance", false), __("Detailed Reports"));
     page.add_inner_button(__("Factory Cost Ledger"), () => frappe.set_route("List", "Factory Cost Ledger"));
     load_reports(page);
 };
@@ -35,8 +37,10 @@ function load_reports(page) {
     }).then(r => render_reports(page, r.message || {}));
 }
 
-function open_profitability_report(page) {
-    frappe.set_route("query-report", "Factory Order Profitability", report_filters(page));
+function open_native_report(page, report_name, include_status) {
+    const filters = report_filters(page);
+    if (!include_status) delete filters.status;
+    frappe.set_route("query-report", report_name, filters);
 }
 
 function render_reports(page, data) {
@@ -47,6 +51,7 @@ function render_reports(page, data) {
         <div class="reports-kpis">
             ${kpi(__("Net Sales"), money(f.revenue, currency))}
             ${kpi(__("Recorded Actual Cost"), money(f.total_actual_cost, currency))}
+            ${kpi(__("Profit Before Factory Errors"), money(f.profit_before_factory_errors, currency), f.profit_before_factory_errors < 0 ? "danger" : "success")}
             ${kpi(__("Net Profit After Errors"), money(f.net_profit, currency), f.net_profit < 0 ? "danger" : "success")}
             ${kpi(__("Gross Margin"), `${number(f.gross_margin_percent)}%`, f.gross_margin_percent < 0 ? "danger" : "success")}
             ${kpi(__("Factory Error Cost"), money(f.factory_error_cost, currency), f.factory_error_cost > 0 ? "warning" : "")}
@@ -101,15 +106,9 @@ function waste_table(rows, currency) {
     return `<div class="reports-table waste-table"><div class="waste-row header"><b>${__("Board Material")}</b><b>${__("Cutting Orders")}</b><b>${__("Boards")}</b><b>${__("Gross Unused")}</b><b>${__("Recovered")}</b><b>${__("Scrap")}</b><b>${__("Net Waste")}</b></div>${rows.map(row => `<div class="waste-row"><span>${frappe.utils.escape_html(row.board_item || "")}</span><span>${row.cutting_orders}</span><span>${number(row.boards)}</span><span>${money(row.gross_unused_cost, currency)}</span><span class="positive">${money(row.recovered_value, currency)}</span><span>${money(row.explicit_scrap_cost, currency)}</span><b class="${row.net_waste_cost > 0 ? "warning-text" : ""}">${money(row.net_waste_cost, currency)}</b></div>`).join("") || empty()}</div>`;
 }
 
-function stage_table(rows, currency) {
-    return operation_table(rows, "stage", currency, __("Stage"));
-}
-function worker_table(rows, currency) {
-    return operation_table(rows, "worker", currency, __("Worker"));
-}
-function workstation_table(rows, currency) {
-    return operation_table(rows, "workstation", currency, __("Workstation"));
-}
+function stage_table(rows, currency) { return operation_table(rows, "stage", currency, __("Stage")); }
+function worker_table(rows, currency) { return operation_table(rows, "worker", currency, __("Worker")); }
+function workstation_table(rows, currency) { return operation_table(rows, "workstation", currency, __("Workstation")); }
 function operation_table(rows, key, currency, label) {
     return `<div class="compact-table operation-table"><div class="operation-row header"><b>${label}</b><b>${__("Completed")}</b><b>${__("Hours")}</b><b>${__("Avg Min")}</b><b>${__("Rework Hrs")}</b><b>${__("Cost")}</b></div>${rows.slice(0, 20).map(row => `<div class="operation-row"><span>${frappe.utils.escape_html(row[key] || "")}</span><span>${row.completed}</span><span>${number((row.work_minutes || 0) / 60)}</span><span>${number(row.avg_minutes)}</span><span>${number((row.rework_minutes || 0) / 60)}</span><span>${money((row.labor_cost || 0) + (row.machine_cost || 0), currency)}</span></div>`).join("") || empty()}</div>`;
 }
@@ -119,9 +118,7 @@ function customer_table(rows, currency) {
 }
 
 function bind_report_links(page) {
-    page.main.find("[data-order]").on("click", function () {
-        frappe.set_route("Form", "Factory Order", $(this).data("order"));
-    });
+    page.main.find("[data-order]").on("click", function () { frappe.set_route("Form", "Factory Order", $(this).data("order")); });
 }
 function heading(title, subtitle) { return `<div class="reports-heading"><h3>${title}</h3><span>${subtitle || ""}</span></div>`; }
 function kpi(label, value, tone = "") { return `<div class="reports-kpi ${tone}"><span>${label}</span><b>${value}</b></div>`; }
