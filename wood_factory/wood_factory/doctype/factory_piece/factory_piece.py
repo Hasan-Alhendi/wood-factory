@@ -2,6 +2,8 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import flt, now_datetime, time_diff_in_seconds
 
+from wood_factory.security import can_view_financials, require_stage_access, require_supervision
+
 
 STAGES = ("Cutting", "Edge Banding", "Drilling", "Assembly", "Quality Inspection", "Packing")
 
@@ -13,6 +15,7 @@ class FactoryPiece(Document):
 
     @frappe.whitelist()
     def track_separately(self, reason):
+        require_stage_access(self.current_stage)
         if self.is_exception:
             frappe.throw("Piece is already tracked separately")
         if not reason:
@@ -20,11 +23,12 @@ class FactoryPiece(Document):
         self.is_exception = 1
         self.exception_reason = reason
         self.responsible = frappe.session.user
-        self.save()
+        self.save(ignore_permissions=True)
         return self._summary()
 
     @frappe.whitelist()
     def return_to_order_flow(self):
+        require_supervision()
         self._require_exception()
         order = frappe.get_doc("Factory Order", self.factory_order)
         self.is_exception = 0
@@ -38,14 +42,17 @@ class FactoryPiece(Document):
         self.responsible = active.responsible if active else None
         self.workstation = active.workstation if active else None
         self.stage_started_at = active.started_at if active else None
-        self.save()
+        self.save(ignore_permissions=True)
         return self._summary()
 
     @frappe.whitelist()
     def start_stage(self, workstation=None):
         self._require_exception()
+        require_stage_access(self.current_stage)
         if self.status not in ("Ready", "Blocked") or self.current_stage == "Completed":
             frappe.throw("Piece is not ready to start")
+        if self.status == "Blocked" and self.responsible and self.responsible != frappe.session.user:
+            require_supervision()
         self.workstation = self._resolve_workstation(workstation)
         if self.current_stage == "Cutting":
             self._consume_reserved_remnant()
@@ -57,27 +64,33 @@ class FactoryPiece(Document):
         self.stage_started_at = self.stage_started_at or now
         self.block_reason = None
         self.responsible = frappe.session.user
-        self.save()
+        self.save(ignore_permissions=True)
         return self._summary()
 
     @frappe.whitelist()
     def block_stage(self, reason):
         self._require_exception()
+        require_stage_access(self.current_stage)
         if self.status != "In Progress":
             frappe.throw("Only an in-progress piece can be blocked")
+        if self.responsible and self.responsible != frappe.session.user:
+            require_supervision()
         if not reason:
             frappe.throw("Block reason is required")
         self.status = "Blocked"
         self.block_reason = reason
         self.blocked_at = now_datetime()
-        self.save()
+        self.save(ignore_permissions=True)
         return self._summary()
 
     @frappe.whitelist()
     def complete_stage(self):
         self._require_exception()
+        require_stage_access(self.current_stage)
         if self.status != "In Progress":
             frappe.throw("Only an in-progress piece can complete a stage")
+        if self.responsible and self.responsible != frappe.session.user:
+            require_supervision()
         try:
             index = STAGES.index(self.current_stage)
         except ValueError:
@@ -106,7 +119,7 @@ class FactoryPiece(Document):
             self.blocked_at = None
             self.blocked_minutes = 0
             self.block_reason = None
-        self.save()
+        self.save(ignore_permissions=True)
 
         from wood_factory.costing import post_exception_piece_stage_cost
         costing = post_exception_piece_stage_cost(self.name, stage, actual_minutes, workstation, responsible)
@@ -117,7 +130,9 @@ class FactoryPiece(Document):
             "last_stage_costing_status": costing.get("status", "Partial"),
         })
         self.reload()
-        return {**self._summary(), "costing": costing}
+        response = self._summary()
+        response["costing"] = costing if can_view_financials() else {"status": costing.get("status"), "missing": costing.get("missing", [])}
+        return response
 
     def _consume_reserved_remnant(self):
         exception = frappe.db.get_value(
@@ -166,7 +181,7 @@ class FactoryPiece(Document):
         return candidates[0].name
 
     def _summary(self):
-        return {
+        summary = {
             "piece_uid": self.piece_uid,
             "is_exception": self.is_exception,
             "current_stage": self.current_stage,
@@ -175,7 +190,11 @@ class FactoryPiece(Document):
             "workstation": self.workstation,
             "costing_status": self.costing_status,
             "last_stage_actual_minutes": self.last_stage_actual_minutes,
-            "last_stage_labor_cost": self.last_stage_labor_cost,
-            "last_stage_machine_cost": self.last_stage_machine_cost,
             "last_stage_costing_status": self.last_stage_costing_status,
         }
+        if can_view_financials():
+            summary.update({
+                "last_stage_labor_cost": self.last_stage_labor_cost,
+                "last_stage_machine_cost": self.last_stage_machine_cost,
+            })
+        return summary
