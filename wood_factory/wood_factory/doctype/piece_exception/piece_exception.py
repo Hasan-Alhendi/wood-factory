@@ -2,10 +2,13 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import flt, now_datetime
 
+from wood_factory.security import require_planning, require_stage_access, require_supervision
+
 
 class PieceException(Document):
     def before_insert(self):
         piece = frappe.get_doc("Factory Piece", self.factory_piece)
+        require_stage_access(piece.current_stage)
         if piece.is_exception:
             frappe.throw(f"Piece {piece.name} is already tracked separately")
         if frappe.db.exists("Piece Exception", {"factory_piece": piece.name, "status": ["not in", ["Resolved", "Cancelled"]]}):
@@ -14,20 +17,27 @@ class PieceException(Document):
         self.reported_stage = piece.current_stage
         self.reported_by = frappe.session.user
         self.reported_at = now_datetime()
+        self.status = "Open"
+        self.responsible = None
+        self.replacement_piece = None
+        self.suggested_remnant = None
+        self.replacement_cutting_order = None
 
     def after_insert(self):
         frappe.get_doc("Factory Piece", self.factory_piece).track_separately(f"{self.exception_type}: {self.reason}")
 
     @frappe.whitelist()
     def require_replacement(self):
+        require_supervision()
         if self.status in ("Resolved", "Cancelled"):
             frappe.throw("Closed exception cannot require replacement")
         self.status = "Replacement Required"
-        self.save()
+        self.save(ignore_permissions=True)
         return self._summary()
 
     @frappe.whitelist()
     def start_replacement(self):
+        require_supervision()
         if self.status != "Replacement Required":
             frappe.throw("Mark the exception as Replacement Required first")
         if self.replacement_piece:
@@ -57,11 +67,12 @@ class PieceException(Document):
         self.replacement_piece = replacement.name
         self.replacement_started_at = now_datetime()
         self.status = "Replacement In Production"
-        self.save()
+        self.save(ignore_permissions=True)
         return self._summary()
 
     @frappe.whitelist()
     def find_best_remnant(self):
+        require_planning()
         if not self.replacement_piece:
             frappe.throw("Start replacement manufacturing first")
         piece = frappe.get_doc("Factory Piece", self.replacement_piece)
@@ -69,7 +80,7 @@ class PieceException(Document):
         if not required_board_item:
             frappe.throw(f"Cannot determine required board item for {piece.name}")
         piece_area = flt(piece.width_mm) * flt(piece.height_mm) / 1_000_000
-        candidates = frappe.get_all("Board Remnant", filters={"status": "Available", "board_item": required_board_item}, fields=["name", "width_mm", "height_mm", "area_m2", "warehouse"])
+        candidates = frappe.get_all("Board Remnant", filters={"status": "Available", "board_item": required_board_item}, fields=["name", "width_mm", "height_mm", "area_m2", "warehouse"], limit_page_length=0)
         matches = []
         for remnant in candidates:
             normal = flt(piece.width_mm) <= flt(remnant.width_mm) and flt(piece.height_mm) <= flt(remnant.height_mm)
@@ -79,18 +90,19 @@ class PieceException(Document):
         if not matches:
             self.suggested_remnant = None
             self.remnant_waste_area_m2 = 0
-            self.save()
+            self.save(ignore_permissions=True)
             return {"found": False, "board_item": required_board_item, "piece": piece.name}
         waste, _area, remnant_name = min(matches, key=lambda row: (row[0], row[1], row[2]))
         remnant = frappe.get_doc("Board Remnant", remnant_name)
         remnant.reserve_for_piece(piece.name)
         self.suggested_remnant = remnant.name
         self.remnant_waste_area_m2 = flt(waste, 4)
-        self.save()
+        self.save(ignore_permissions=True)
         return {"found": True, "board_item": required_board_item, "piece": piece.name, "remnant": remnant.name, "waste_area_m2": self.remnant_waste_area_m2}
 
     @frappe.whitelist()
     def create_replacement_cutting_order(self):
+        require_planning()
         if not self.replacement_piece:
             frappe.throw("Start replacement manufacturing first")
         if self.suggested_remnant:
@@ -105,11 +117,12 @@ class PieceException(Document):
         cutting.append("parts", {"part_name": piece.part_name, "width_mm": piece.width_mm, "height_mm": piece.height_mm, "qty": 1, "allow_rotation": source_row.allow_rotation if source_row else 1, "grain_direction": source_row.grain_direction if source_row else "Any", "edge_top": source_row.edge_top if source_row else 0, "edge_right": source_row.edge_right if source_row else 0, "edge_bottom": source_row.edge_bottom if source_row else 0, "edge_left": source_row.edge_left if source_row else 0, "edge_band_item": source_row.edge_band_item if source_row else None, "edge_band_rate_per_m": source_row.edge_band_rate_per_m if source_row else 0, "notes": f"Factory-funded replacement for {piece.name}; customer is not billed"})
         cutting.insert(ignore_permissions=True)
         self.replacement_cutting_order = cutting.name
-        self.save()
+        self.save(ignore_permissions=True)
         return {"cutting_order": cutting.name, "customer_billable": False, "factory_order": self.factory_order, "replacement_piece": piece.name}
 
     @frappe.whitelist()
     def confirm_replacement_completed(self):
+        require_supervision()
         if self.status != "Replacement In Production" or not self.replacement_piece:
             frappe.throw("No replacement piece is currently in production")
         replacement = frappe.get_doc("Factory Piece", self.replacement_piece)
@@ -117,11 +130,12 @@ class PieceException(Document):
             frappe.throw("Replacement piece must complete its production stages first")
         self.status = "Replacement Completed"
         self.replacement_completed_at = now_datetime()
-        self.save()
+        self.save(ignore_permissions=True)
         return self._summary()
 
     @frappe.whitelist()
     def resolve(self, resolution_notes):
+        require_supervision()
         if self.status in ("Resolved", "Cancelled"):
             frappe.throw("Exception is already closed")
         if not resolution_notes:
@@ -133,17 +147,18 @@ class PieceException(Document):
             original.status = "Completed"
             original.current_stage = "Completed"
             original.completed_at = now_datetime()
-            original.save()
+            original.save(ignore_permissions=True)
         else:
             original.return_to_order_flow()
         self.status = "Resolved"
         self.resolution_notes = resolution_notes
         self.resolved_at = now_datetime()
-        self.save()
+        self.save(ignore_permissions=True)
         return self._summary()
 
     @frappe.whitelist()
     def cancel_exception(self, resolution_notes):
+        require_supervision()
         if self.status in ("Resolved", "Cancelled"):
             frappe.throw("Exception is already closed")
         if self.replacement_piece:
@@ -154,7 +169,7 @@ class PieceException(Document):
         self.status = "Cancelled"
         self.resolution_notes = resolution_notes
         self.resolved_at = now_datetime()
-        self.save()
+        self.save(ignore_permissions=True)
         return self._summary()
 
     @staticmethod
