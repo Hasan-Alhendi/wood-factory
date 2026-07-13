@@ -13,14 +13,14 @@
   {"fieldname": "blocked_at", "fieldtype": "Datetime", "label": "Blocked At", "read_only": 1},
   {"fieldname": "blocked_minutes", "fieldtype": "Float", "label": "Blocked Minutes", "precision": "2", "read_only": 1},
   {"fieldname": "block_reason", "fieldtype": "Small Text", "label": "Block Reason"},
-  {"default": "Pending", "fieldname": "costing_status", "fieldtype": "Select", "in_list_view": 1, "label": "Costing Status", "options": "Pending\nPartial\nPosted", "read_only": 1},
-  {"fieldname": "labor_hourly_rate", "fieldtype": "Currency", "label": "Labor Rate / Hour", "read_only": 1},
-  {"fieldname": "machine_hourly_rate", "fieldtype": "Currency", "label": "Machine Rate / Hour", "read_only": 1},
-  {"fieldname": "labor_cost", "fieldtype": "Currency", "label": "Actual Labor Cost", "read_only": 1},
-  {"fieldname": "machine_cost", "fieldtype": "Currency", "label": "Actual Machine Cost", "read_only": 1},
+  {"default": "Pending", "fieldname": "costing_status", "fieldtype": "Select", "label": "Costing Status", "options": "Pending\nPartial\nPosted", "read_only": 1},
+  {"fieldname": "labor_hourly_rate", "fieldtype": "Currency", "label": "Labor Rate / Hour", "permlevel": 1, "read_only": 1},
+  {"fieldname": "machine_hourly_rate", "fieldtype": "Currency", "label": "Machine Rate / Hour", "permlevel": 1, "read_only": 1},
+  {"fieldname": "labor_cost", "fieldtype": "Currency", "label": "Actual Labor Cost", "permlevel": 1, "read_only": 1},
+  {"fieldname": "machine_cost", "fieldtype": "Currency", "label": "Actual Machine Cost", "permlevel": 1, "read_only": 1},
   {"fieldname": "reference_doctype", "fieldtype": "Link", "label": "Reference DocType", "options": "DocType"},
   {"fieldname": "reference_name", "fieldtype": "Dynamic Link", "label": "Reference", "options": "reference_doctype"},
   {"fieldname": "notes", "fieldtype": "Small Text", "label": "Notes"}
  ],
- "istable": 1, "modified": "2026-07-12 00:00:00.000000", "modified_by": "Administrator", "module": "Wood Factory", "name": "Factory Order Stage", "owner": "Administrator", "permissions": [], "sort_field": "modified", "sort_order": "DESC", "states": []
+ "istable": 1, "modified": "2026-07-13 00:00:00.000000", "modified_by": "Administrator", "module": "Wood Factory", "name": "Factory Order Stage", "owner": "Administrator", "permissions": [], "sort_field": "modified", "sort_order": "DESC", "states": []
 }
