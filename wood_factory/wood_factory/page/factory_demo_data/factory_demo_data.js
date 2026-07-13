@@ -34,7 +34,7 @@ frappe.pages["factory-demo-data"].on_page_load = function (wrapper) {
 
 function load_demo_status(page) {
     frappe.call({
-        method: "wood_factory.demo_data.get_demo_status",
+        method: "wood_factory.demo_dataset.get_demo_status",
         args: {company: page.company_field.get_value()},
     }).then(r => render_demo_status(page, r.message || {}));
 }
@@ -53,7 +53,7 @@ function generate_demo_data(page) {
         `${__("Create or refresh the Wood Factory demo dataset for {0}?", [company])}${stockWarning}<br><br>${__("The operation is idempotent and does not delete production data.")}`,
         () => {
             frappe.call({
-                method: "wood_factory.demo_data.create_demo_dataset",
+                method: "wood_factory.demo_dataset.create_demo_dataset",
                 args: {
                     company,
                     include_users: page.users_field.get_value(),
