@@ -32,6 +32,7 @@ STAGE_ROLE_MAP = {
 }
 STAGE_ROLES = set(STAGE_ROLE_MAP.values())
 OPERATIONAL_ROLES = PLANNING_ROLES | STAGE_ROLES | {FACTORY_DELIVERY_USER, FACTORY_ACCOUNTANT, "Accounts Manager", "Stock Manager"}
+READ_TYPES = {None, "read", "select", "report", "export", "print", "email"}
 
 
 def get_user_roles(user=None):
@@ -169,43 +170,54 @@ def factory_alert_query(user=None):
 def factory_order_permission(doc, user=None, permission_type=None):
     user = user or frappe.session.user
     roles = get_user_roles(user)
+    if permission_type not in READ_TYPES:
+        return bool(roles & PLANNING_ROLES)
     if roles & (PLANNING_ROLES | ACCOUNTING_ROLES | {"Stock Manager"}):
         return True
-    if FACTORY_DELIVERY_USER in roles and doc.status in ("Ready for Delivery", "Delivered"):
+    if FACTORY_DELIVERY_USER in roles and getattr(doc, "status", None) in ("Ready for Delivery", "Delivered"):
         return True
-    return stage_accessible_to_user(doc.current_stage, user=user)
+    return stage_accessible_to_user(getattr(doc, "current_stage", None), user=user)
 
 
 def factory_piece_permission(doc, user=None, permission_type=None):
     user = user or frappe.session.user
     roles = get_user_roles(user)
+    if permission_type not in READ_TYPES:
+        return bool(roles & PLANNING_ROLES)
     if roles & (PLANNING_ROLES | ACCOUNTING_ROLES | {"Stock Manager"}):
         return True
-    if FACTORY_DELIVERY_USER in roles and doc.status == "Completed":
+    if FACTORY_DELIVERY_USER in roles and getattr(doc, "status", None) == "Completed":
         return True
-    return stage_accessible_to_user(doc.current_stage, user=user)
+    return stage_accessible_to_user(getattr(doc, "current_stage", None), user=user)
 
 
 def piece_exception_permission(doc, user=None, permission_type=None):
     user = user or frappe.session.user
     roles = get_user_roles(user)
+    if permission_type == "create":
+        return bool(roles & (SUPERVISION_ROLES | STAGE_ROLES))
+    if permission_type not in READ_TYPES:
+        return bool(roles & SUPERVISION_ROLES)
     if roles & SUPERVISION_ROLES:
         return True
-    if permission_type == "create" and getattr(doc, "factory_piece", None):
-        stage = frappe.db.get_value("Factory Piece", doc.factory_piece, "current_stage")
-        return stage_accessible_to_user(stage, user=user)
     return user in {getattr(doc, "reported_by", None), getattr(doc, "responsible", None)} or stage_accessible_to_user(getattr(doc, "reported_stage", None), user=user)
 
 
 def factory_alert_permission(doc, user=None, permission_type=None):
     user = user or frappe.session.user
+    if permission_type not in READ_TYPES:
+        return has_any_role(SUPERVISION_ROLES, user=user)
     if has_any_role(SUPERVISION_ROLES, user=user):
         return True
     return user in {getattr(doc, "responsible", None), getattr(doc, "escalated_to", None)}
 
 
 def financial_document_permission(doc, user=None, permission_type=None):
-    return can_view_financials(user=user)
+    user = user or frappe.session.user
+    roles = get_user_roles(user)
+    if permission_type in READ_TYPES:
+        return bool(roles & (ACCOUNTING_ROLES | MANAGEMENT_ROLES))
+    return bool(roles & (ACCOUNTING_ROLES | MANAGEMENT_ROLES))
 
 
 def operational_document_permission(doc, user=None, permission_type=None):
