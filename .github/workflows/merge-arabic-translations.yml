@@ -27,6 +27,11 @@ jobs:
 
           target = Path('wood_factory/translations/ar.csv')
           pending = Path('wood_factory/translations/ar.pending.csv')
+          malformed_sources = {
+              'This workstation belongs to {0}',
+              'Stage completed. Labor: {0}',
+              'Optimized with {0}: {1} board(s)',
+          }
 
           def rows(path):
               if not path.exists():
@@ -39,6 +44,8 @@ jobs:
           for row in rows(target) + rows(pending):
               source = row[0].strip()
               translation = row[1].strip()
+              if source in malformed_sources:
+                  continue
               if source in positions:
                   merged[positions[source]] = [source, translation]
               else:
@@ -61,5 +68,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add wood_factory/translations/ar.csv
-          git commit -m "Merge reviewed Arabic factory terminology"
+          git commit -m "Correct reviewed Arabic factory terminology"
           git push origin HEAD:agent/factory-order-architecture
