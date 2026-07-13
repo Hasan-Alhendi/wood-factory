@@ -123,6 +123,7 @@ PAGE_ROLE_MATRIX = {
     "factory-worker": list(MANAGEMENT_ROLES | {FACTORY_SUPERVISOR} | STAGE_ROLES),
     "factory-scan": list(MANAGEMENT_ROLES | {FACTORY_SUPERVISOR} | STAGE_ROLES | {FACTORY_DELIVERY_USER}),
     "factory-control-center": list(MANAGEMENT_ROLES | {FACTORY_SUPERVISOR}),
+    "factory-demo-data": list(MANAGEMENT_ROLES),
     "factory-dashboard": list(MANAGEMENT_ROLES | {FACTORY_SUPERVISOR, FACTORY_PLANNER}),
     "factory-schedule": list(MANAGEMENT_ROLES | {FACTORY_SUPERVISOR, FACTORY_PLANNER}),
     "factory-capacity": list(MANAGEMENT_ROLES | {FACTORY_SUPERVISOR, FACTORY_PLANNER}),
