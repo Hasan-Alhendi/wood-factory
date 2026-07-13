@@ -29,6 +29,7 @@ class TestFactoryEndToEndFlow(unittest.TestCase):
             company=self.company,
             include_users=0,
             include_stock=0,
+            confirm_demo=1,
         )
         validation = result["validation"]
         failed = [row["name"] for row in validation["checks"] if row["critical"] and not row["passed"]]
@@ -38,11 +39,21 @@ class TestFactoryEndToEndFlow(unittest.TestCase):
         self.assertTrue(validation["ready_for_runtime_testing"])
 
     def test_demo_generation_is_idempotent(self):
-        first = run_factory_acceptance(company=self.company, include_users=0, include_stock=0)
+        first = run_factory_acceptance(
+            company=self.company,
+            include_users=0,
+            include_stock=0,
+            confirm_demo=1,
+        )
         first_scenarios = self._scenario_documents(first)
         first_counts = first["dataset"]["counts"].copy()
 
-        second = run_factory_acceptance(company=self.company, include_users=0, include_stock=0)
+        second = run_factory_acceptance(
+            company=self.company,
+            include_users=0,
+            include_stock=0,
+            confirm_demo=1,
+        )
         second_scenarios = self._scenario_documents(second)
         second_counts = second["dataset"]["counts"].copy()
 
@@ -52,7 +63,12 @@ class TestFactoryEndToEndFlow(unittest.TestCase):
             self.assertEqual(first_counts.get(key), second_counts.get(key), key)
 
     def test_validator_is_read_only(self):
-        generated = run_factory_acceptance(company=self.company, include_users=0, include_stock=0)
+        generated = run_factory_acceptance(
+            company=self.company,
+            include_users=0,
+            include_stock=0,
+            confirm_demo=1,
+        )
         before = self._scenario_documents(generated)
 
         validation = validate_factory_acceptance(company=self.company)
