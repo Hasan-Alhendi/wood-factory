@@ -45,7 +45,7 @@ def execute(filters=None):
         {"label": _("Factory Error Cost"), "value": summary["factory_error_cost"], "indicator": "Red" if summary["factory_error_cost"] else "Green", "datatype": "Currency", "currency": currency},
         {"label": _("Incomplete Costing"), "value": summary["incomplete_costing_orders"], "indicator": "Red" if summary["incomplete_costing_orders"] else "Green", "datatype": "Int"},
     ]
-    chart = _chart(data["months"], currency)
+    chart = _chart(data["months"])
     message = None
     if summary["incomplete_costing_orders"]:
         message = _("{0} order(s) have incomplete costing. Their profit is based on currently recorded costs only.").format(summary["incomplete_costing_orders"])
@@ -72,7 +72,7 @@ def _columns():
     ]
 
 
-def _chart(months, currency):
+def _chart(months):
     if not months:
         return None
     return {
@@ -88,5 +88,4 @@ def _chart(months, currency):
         "height": 280,
         "colors": ["#2490ef", "#f59e0b", "#16a34a"],
         "axis_options": {"xIsSeries": 1},
-        "tooltip_options": {"format_tooltip_y": "d => d + ' ' + currency"},
     }
