@@ -77,6 +77,8 @@ DOC_PERMISSION_MATRIX = {
         _entry("Stock Manager", WRITE), *_account_rows(),
         *[_entry(role, READ) for role in STAGE_ROLES],
         *_manager_rows(WRITE, 1), *_account_rows(READ_EXPORT, 1),
+        *_manager_rows(WRITE, 2), _entry(FACTORY_SUPERVISOR, WRITE, 2),
+        _entry(FACTORY_PLANNER, WRITE, 2), *_account_rows(READ_EXPORT, 2),
     ],
     "Factory Piece": _manager_rows() + [
         _entry(FACTORY_SUPERVISOR, WRITE), _entry(FACTORY_PLANNER, WRITE),
