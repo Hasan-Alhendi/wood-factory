@@ -31,7 +31,7 @@ STAGE_ROLE_MAP = {
     "Packing": FACTORY_PACKING_OPERATOR,
 }
 STAGE_ROLES = set(STAGE_ROLE_MAP.values())
-OPERATIONAL_ROLES = PLANNING_ROLES | STAGE_ROLES | {FACTORY_DELIVERY_USER, FACTORY_ACCOUNTANT, "Accounts Manager", "Stock Manager"}
+OPERATIONAL_ROLES = PLANNING_ROLES | STAGE_ROLES | {FACTORY_DELIVERY_USER}
 READ_TYPES = {None, "read", "select", "report", "export", "print", "email"}
 
 
@@ -215,8 +215,6 @@ def factory_alert_permission(doc, user=None, permission_type=None):
 def financial_document_permission(doc, user=None, permission_type=None):
     user = user or frappe.session.user
     roles = get_user_roles(user)
-    if permission_type in READ_TYPES:
-        return bool(roles & (ACCOUNTING_ROLES | MANAGEMENT_ROLES))
     return bool(roles & (ACCOUNTING_ROLES | MANAGEMENT_ROLES))
 
 
