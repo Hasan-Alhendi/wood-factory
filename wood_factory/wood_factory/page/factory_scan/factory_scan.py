@@ -1,8 +1,11 @@
 import frappe
 
+from wood_factory.security import require_operational_view
+
 
 @frappe.whitelist()
 def resolve_scan(code):
+    require_operational_view()
     code = (code or "").strip()
     if not code:
         frappe.throw("Scan or enter a factory code")
@@ -12,18 +15,26 @@ def resolve_scan(code):
 
     order = _find_order(order_name or code)
     if order:
+        _require_read("Factory Order", order)
         return _order_result(order)
 
     piece = _find_piece(piece_uid or code)
     if piece:
+        _require_read("Factory Piece", piece)
         if not piece.is_exception:
             order = frappe.get_doc("Factory Order", piece.factory_order)
+            _require_read("Factory Order", order)
             result = _order_result(order)
             result["message"] = "This is a normal piece. Work is controlled by the whole Factory Order."
             return result
         return _piece_result(piece)
 
     frappe.throw(f"No Factory Order or Factory Piece matches code {code}")
+
+
+def _require_read(doctype, doc):
+    if not frappe.has_permission(doctype, ptype="read", doc=doc):
+        frappe.throw(f"You are not permitted to view this {doctype}", frappe.PermissionError)
 
 
 def _extract_code(value, prefix):
