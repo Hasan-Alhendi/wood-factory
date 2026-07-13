@@ -4,9 +4,12 @@ import unittest
 from pathlib import Path
 
 
-TRANSLATION_FILE = Path(__file__).resolve().parents[1] / "translations" / "ar.csv"
+APP_ROOT = Path(__file__).resolve().parents[1]
+TRANSLATION_FILE = APP_ROOT / "translations" / "ar.csv"
+JS_ROOT = APP_ROOT / "wood_factory"
 ARABIC_RE = re.compile(r"[\u0600-\u06FF]")
 PLACEHOLDER_RE = re.compile(r"(?:\{\d+\}|%\([^)]+\)[sd]|%[sd])")
+TEMPLATE_TRANSLATION_RE = re.compile(r"__\(\s*`")
 
 CORE_TERMS = {
     "Wood Factory",
@@ -20,6 +23,7 @@ CORE_TERMS = {
     "Factory Control Center",
     "Factory Reports",
     "Factory Demo Data",
+    "Translation Audit",
     "Cutting",
     "Edge Banding",
     "Drilling",
@@ -31,7 +35,8 @@ CORE_TERMS = {
     "Ready for Delivery",
     "Delivered",
     "Replacement Required",
-    "Replacement In Progress",
+    "Replacement In Production",
+    "Replacement Completed",
     "Customer Material Consumption",
     "Internal Replacement Material",
     "Remnant Material Consumption",
@@ -41,10 +46,10 @@ CORE_TERMS = {
     "Customer-Attributable Actual Cost",
     "Factory Error / Rework Cost",
     "Total Actual Cost",
-    "Optimize Layout",
+    "Optimize Board Layout",
     "Approve & Consume Materials",
     "Find Best Remnant",
-    "Create Replacement Cutting Order",
+    "Create Factory-Funded Cutting Order",
     "Mark Ready for Delivery",
     "Confirm Delivered",
     "Production Bottlenecks",
@@ -73,7 +78,7 @@ def load_rows():
 class TestArabicTranslations(unittest.TestCase):
     def test_translation_file_exists_and_is_not_small(self):
         self.assertTrue(TRANSLATION_FILE.exists())
-        self.assertGreaterEqual(len(load_rows()), 400)
+        self.assertGreaterEqual(len(load_rows()), 650)
 
     def test_every_row_has_source_and_arabic_translation(self):
         for line_number, row in enumerate(load_rows(), start=1):
@@ -110,6 +115,14 @@ class TestArabicTranslations(unittest.TestCase):
         translations = {row[0].strip(): row[1].strip() for row in load_rows()}
         self.assertEqual(translations.get("Open"), "مفتوح")
         self.assertEqual(translations.get("Open Page"), "فتح الصفحة")
+
+    def test_js_translation_calls_do_not_use_template_literals(self):
+        offenders = []
+        for path in JS_ROOT.rglob("*.js"):
+            content = path.read_text(encoding="utf-8")
+            if TEMPLATE_TRANSLATION_RE.search(content):
+                offenders.append(str(path.relative_to(APP_ROOT)))
+        self.assertEqual(offenders, [], "Use literal strings with {0} placeholders in __() calls")
 
 
 if __name__ == "__main__":
