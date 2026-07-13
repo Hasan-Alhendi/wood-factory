@@ -1,0 +1,101 @@
+Initialize Production Stages,تهيئة مراحل الإنتاج
+Production,الإنتاج
+View,عرض
+Production Timeline,التسلسل الزمني للإنتاج
+Accounting Settings,إعدادات المحاسبة
+Worker Cost Rates,معدلات تكلفة العمال
+Workstation Cost Rates,معدلات تكلفة محطات العمل
+Delivery,التسليم
+Auto Assign Workstation: {0},تعيين محطة العمل تلقائيًا: {0}
+Start / Resume: {0},بدء / استئناف: {0}
+Complete: {0},إنهاء: {0}
+Block: {0},إيقاف: {0}
+This workstation belongs to {0}, not {1},محطة العمل هذه تابعة لمرحلة {0} وليست لمرحلة {1}
+Selected workstation is not active,محطة العمل المحددة غير فعالة
+Delivery status updated,تم تحديث حالة التسليم
+Stage completed. Labor: {0}, Machine: {1}, Costing: {2},اكتملت المرحلة. العمالة: {0}، الماكينة: {1}، حالة التكلفة: {2}
+Stage completed. Costing status: {0},اكتملت المرحلة. حالة التكلفة: {0}
+Assigned to {0},تم التعيين إلى {0}
+Production stage updated,تم تحديث مرحلة الإنتاج
+Actual cost recalculated: {0},تمت إعادة احتساب التكلفة الفعلية: {0}
+Block Production Stage,إيقاف مرحلة الإنتاج
+Approved,معتمد
+In Cutting,قيد القص
+Optimized,تم ترتيب الألواح
+Optimize Board Layout,ترتيب القطع على الألواح
+Optimized with {0}: {1} board(s), {2}% waste,تم الترتيب باستخدام {0}: عدد الألواح {1}، ونسبة الهدر {2}%
+Check Material Stock,فحص مخزون المواد
+Materials,المواد
+Material shortage found,يوجد نقص في المواد
+All required materials are available,جميع المواد المطلوبة متاحة
+Item,الصنف
+Required,المطلوب
+Shortage,النقص
+"the factory internal rework cost center",مركز تكلفة الأخطاء وإعادة العمل في المعمل
+"the customer order cost center",مركز تكلفة طلب العميل
+"This will submit a Material Issue, deduct boards and edge band from stock, and post the value to {0}. Continue?",سيتم ترحيل إذن صرف مواد وخصم الألواح والقشاط من المخزون وتحميل القيمة على {0}. هل تريد المتابعة؟
+Customer order cost,تكلفة طلب العميل
+Factory internal rework cost,تكلفة إعادة العمل الداخلية في المعمل
+Materials Posted,تم ترحيل المواد
+Stock Entry,قيد المخزون
+Posted Value,القيمة المرحلة
+Available Qty,الكمية المتاحة
+Replacement,التعويض
+Replacement In Production,القطعة التعويضية قيد الإنتاج
+Replacement Completed,اكتمل تصنيع القطعة التعويضية
+Start Replacement Manufacturing,بدء تصنيع القطعة التعويضية
+Create Factory-Funded Cutting Order,إنشاء أمر قص على حساب المعمل
+Open Replacement Piece,فتح القطعة التعويضية
+Open Suggested Remnant,فتح الفضلة المقترحة
+Open Replacement Cutting Order,فتح أمر القص التعويضي
+Resolve Exception,حل الاستثناء
+Cancel Exception,إلغاء الاستثناء
+Cancellation Notes,ملاحظات الإلغاء
+Exception,الاستثناء
+Reserved remnant {0} with {1} m² remaining area,تم حجز الفضلة {0}، والمساحة المتبقية {1} م²
+"No available remnant of board item {0} fits this replacement piece. Create a factory-funded cutting order.",لا توجد فضلة متاحة من صنف اللوح {0} تناسب القطعة التعويضية. أنشئ أمر قص على حساب المعمل.
+Created internal cutting order {0}; customer will not be billed,تم إنشاء أمر القص الداخلي {0}، ولن يتحمل العميل تكلفته
+Reserve for Piece,حجز لقطعة
+Remnant,الفضلة
+Consume,استهلاك
+Release Reservation,إلغاء الحجز
+Reserve Remnant,حجز الفضلة
+Reserve,حجز
+Scrap Remnant,إتلاف الفضلة
+Queue,الطابور
+No Capacity,لا توجد طاقة متاحة
+Queue Rebalancing Preview,معاينة إعادة توزيع الطابور
+Waiting jobs,الأعمال المنتظرة
+Movable,قابل للنقل
+From,من
+Suggested Workstation,محطة العمل المقترحة
+No queue changes suggested,لا توجد تغييرات مقترحة على الطابور
+Move waiting jobs to the best active workstations? In-progress work will never be moved.,هل تريد نقل الأعمال المنتظرة إلى أفضل محطات العمل الفعالة؟ لن يتم نقل أي عمل قيد التنفيذ.
+Moved {0} waiting job(s),تم نقل {0} من الأعمال المنتظرة
+Piece,قطعة
+Board,اللوح
+Pieces,القطع
+Waste,الهدر
+Edge Band,القشاط
+Report Missing / Damaged,الإبلاغ عن قطعة ناقصة / تالفة
+Open Exception,فتح الاستثناء
+Start / Resume,بدء / استئناف
+Wrong Edge Banding,قشاط خاطئ
+Quality Rejection,مرفوضة في فحص الجودة
+Report Piece Exception,الإبلاغ عن استثناء قطعة
+Create,إنشاء
+Block Piece,إيقاف القطعة
+Resolve this alert manually?,هل تريد حل هذا التنبيه يدويًا؟
+Open Reference,فتح المرجع
+Translation Audit,تدقيق الترجمة
+Arabic Translation Coverage,تغطية الترجمة العربية
+Source Strings,العبارات المصدرية
+App Arabic Translations,ترجمات التطبيق العربية
+Covered,مترجم
+Missing Arabic Translations,ترجمات عربية مفقودة
+All detected factory terms have Arabic translations.,جميع مصطلحات المعمل المكتشفة لها ترجمة عربية.
+No missing Arabic translations,لا توجد ترجمات عربية مفقودة
+No urgent production recommendations. Current flow is stable.,لا توجد توصيات إنتاج عاجلة، وسير العمل مستقر حاليًا.
+Action,الإجراء
+Recommendation,التوصية
+No recommendations,لا توجد توصيات
