@@ -30,6 +30,7 @@ has_permission = {
     "Piece Exception": "wood_factory.security.piece_exception_permission",
     "Factory Alert Log": "wood_factory.security.factory_alert_permission",
     "Factory Cost Ledger": "wood_factory.security.financial_document_permission",
+    "Factory Piece Stage Cost": "wood_factory.security.financial_document_permission",
     "Factory Accounting Settings": "wood_factory.security.financial_document_permission",
     "Factory Worker Cost Rate": "wood_factory.security.financial_document_permission",
 }
