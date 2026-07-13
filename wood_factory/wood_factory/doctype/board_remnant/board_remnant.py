@@ -2,6 +2,8 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import flt, now_datetime
 
+from wood_factory.security import can_view_financials, require_planning, require_stage_access, require_supervision
+
 
 MIN_REMNANT_MM = 100
 
@@ -33,6 +35,7 @@ class BoardRemnant(Document):
 
     @frappe.whitelist()
     def reserve_for_piece(self, factory_piece):
+        require_planning()
         if self.status != "Available":
             frappe.throw("Only an available remnant can be reserved")
         piece = frappe.get_doc("Factory Piece", factory_piece)
@@ -48,21 +51,23 @@ class BoardRemnant(Document):
         self.status = "Reserved"
         self.reserved_for_piece = piece.name
         self.reserved_at = now_datetime()
-        self.save()
+        self.save(ignore_permissions=True)
         return self._summary()
 
     @frappe.whitelist()
     def release_reservation(self):
+        require_planning()
         if self.status != "Reserved":
             frappe.throw("Only a reserved remnant can be released")
         self.status = "Available"
         self.reserved_for_piece = None
         self.reserved_at = None
-        self.save()
+        self.save(ignore_permissions=True)
         return self._summary()
 
     @frappe.whitelist()
     def consume(self):
+        require_stage_access("Cutting")
         if self.status != "Reserved" or not self.reserved_for_piece:
             frappe.throw("Reserve the remnant for a piece before consuming it")
         piece = frappe.get_doc("Factory Piece", self.reserved_for_piece)
@@ -104,11 +109,12 @@ class BoardRemnant(Document):
         self.residual_scrap_value = residual_scrap_value
         self.consumption_cost_ledger = ledger.name if ledger else None
         self.child_remnant_count = len(child_docs)
-        self.save()
+        self.save(ignore_permissions=True)
         return {**self._summary(), "child_remnants": [child.name for child in child_docs]}
 
     @frappe.whitelist()
     def scrap(self):
+        require_supervision()
         if self.status not in ("Available", "Reserved"):
             frappe.throw("Only an available or reserved remnant can be scrapped")
         if self.status == "Reserved":
@@ -119,7 +125,7 @@ class BoardRemnant(Document):
             post_remnant_scrap_loss(self, self.estimated_value, reason="Stored remnant scrapped")
         self.status = "Scrapped"
         self.residual_scrap_value = flt(self.estimated_value, 2)
-        self.save()
+        self.save(ignore_permissions=True)
         return self._summary()
 
     def _fitting_orientations(self, piece):
@@ -157,21 +163,25 @@ class BoardRemnant(Document):
         return min(plans, key=lambda row: row["score"]) if plans else None
 
     def _summary(self):
-        return {
+        summary = {
             "name": self.name,
             "board_item": self.board_item,
             "width_mm": self.width_mm,
             "height_mm": self.height_mm,
             "area_m2": self.area_m2,
-            "estimated_value": self.estimated_value,
-            "currency": self.currency,
             "status": self.status,
             "parent_remnant": self.parent_remnant,
             "reserved_for_piece": self.reserved_for_piece,
             "consumed_area_m2": self.consumed_area_m2,
-            "consumed_value": self.consumed_value,
-            "residual_scrap_value": self.residual_scrap_value,
             "child_remnant_count": self.child_remnant_count,
-            "recovery_cost_ledger": self.recovery_cost_ledger,
-            "consumption_cost_ledger": self.consumption_cost_ledger,
         }
+        if can_view_financials():
+            summary.update({
+                "estimated_value": self.estimated_value,
+                "currency": self.currency,
+                "consumed_value": self.consumed_value,
+                "residual_scrap_value": self.residual_scrap_value,
+                "recovery_cost_ledger": self.recovery_cost_ledger,
+                "consumption_cost_ledger": self.consumption_cost_ledger,
+            })
+        return summary
