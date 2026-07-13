@@ -1,0 +1,65 @@
+name: Merge Arabic translations
+
+on:
+  push:
+    branches:
+      - agent/factory-order-architecture
+    paths:
+      - wood_factory/translations/ar.pending.csv
+
+permissions:
+  contents: write
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/factory-order-architecture
+          fetch-depth: 0
+
+      - name: Merge unique translation rows
+        run: |
+          python - <<'PY'
+          import csv
+          from pathlib import Path
+
+          target = Path('wood_factory/translations/ar.csv')
+          pending = Path('wood_factory/translations/ar.pending.csv')
+
+          def rows(path):
+              if not path.exists():
+                  return []
+              with path.open(encoding='utf-8', newline='') as handle:
+                  return [row for row in csv.reader(handle) if len(row) >= 2 and row[0].strip()]
+
+          merged = []
+          positions = {}
+          for row in rows(target) + rows(pending):
+              source = row[0].strip()
+              translation = row[1].strip()
+              if source in positions:
+                  merged[positions[source]] = [source, translation]
+              else:
+                  positions[source] = len(merged)
+                  merged.append([source, translation])
+
+          with target.open('w', encoding='utf-8', newline='') as handle:
+              writer = csv.writer(handle, lineterminator='\n')
+              writer.writerows(merged)
+
+          print(f'Merged {len(merged)} unique Arabic translations')
+          PY
+
+      - name: Commit merged dictionary
+        run: |
+          if git diff --quiet -- wood_factory/translations/ar.csv; then
+            echo "Arabic translation dictionary already up to date"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add wood_factory/translations/ar.csv
+          git commit -m "Merge reviewed Arabic factory terminology"
+          git push origin HEAD:agent/factory-order-architecture
