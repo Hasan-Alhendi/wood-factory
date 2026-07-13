@@ -28,9 +28,25 @@ FACTORY_ROLES = {
 
 
 @frappe.whitelist()
-def run_factory_acceptance(company=None, include_stock=0, include_users=0):
+def run_factory_acceptance(
+    company=None,
+    include_stock=0,
+    include_users=0,
+    confirm_demo=0,
+    confirm_stock=0,
+):
     """Create or repair safe demo records, then validate the complete factory flow."""
     security.require_management()
+    if not cint(confirm_demo):
+        frappe.throw(
+            "Acceptance creates persistent records marked [WOOD_FACTORY_DEMO]. "
+            "Run it only on a staging/test site and pass confirm_demo=1."
+        )
+    if cint(include_stock) and not cint(confirm_stock):
+        frappe.throw(
+            "Stock acceptance submits a demo Material Receipt. "
+            "Pass confirm_stock=1 only after reviewing the test company's stock setup."
+        )
     company = demo_data._resolve_company(company)
     dataset = demo_dataset.create_demo_dataset(
         company=company,
