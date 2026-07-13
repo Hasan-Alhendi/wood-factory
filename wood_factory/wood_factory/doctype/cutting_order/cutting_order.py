@@ -8,6 +8,7 @@ from wood_factory.accounting import (
     post_material_cost,
     resolve_accounting_context,
 )
+from wood_factory.security import can_view_financials, require_cutting_planning, require_material_posting
 from wood_factory.wood_factory.cutting import optimize
 
 
@@ -67,6 +68,7 @@ class CuttingOrder(Document):
 
     @frappe.whitelist()
     def optimize_layout(self):
+        require_cutting_planning()
         if self.is_new():
             frappe.throw("Save the Cutting Order before optimization")
         pieces = self._expand_pieces()
@@ -91,15 +93,18 @@ class CuttingOrder(Document):
             "cutting_cost_usd": board_count,
             "status": "Optimized",
         })
-        return {
+        response = {
             "algorithm": result["algorithm"],
             "board_count": board_count,
             "waste_percent": result["waste_percent"],
-            "cutting_cost_usd": board_count,
         }
+        if can_view_financials():
+            response["cutting_cost_usd"] = board_count
+        return response
 
     @frappe.whitelist()
     def check_material_availability(self):
+        require_cutting_planning()
         self._require_optimized()
         requirements = self._material_requirements()
         shortages = []
@@ -113,10 +118,11 @@ class CuttingOrder(Document):
 
     @frappe.whitelist()
     def approve_and_consume_materials(self):
+        require_material_posting()
         self._require_optimized()
         if self.material_stock_entry:
             frappe.throw(f"Materials already consumed by Stock Entry {self.material_stock_entry}")
-        availability = self.check_material_availability()
+        availability = self._check_material_availability_internal()
         if availability["has_shortage"]:
             lines = [
                 f'{row["item_code"]}: need {row["qty"]}, available {row["available_qty"]} in {row["warehouse"]}'
@@ -165,15 +171,31 @@ class CuttingOrder(Document):
             "stock_entry_value": posting["amount"],
             "cost_ledger_entry": posting["cost_ledger"],
         })
-        return {
+        response = {
             "stock_entry": stock_entry.name,
             "status": "Approved",
             "piece_count": frappe.db.count("Factory Piece", {"cutting_order": self.name}),
-            "posted_value": posting["amount"],
-            "currency": posting["currency"],
-            "cost_ledger": posting["cost_ledger"],
             "customer_billable": not internal_replacement,
         }
+        if can_view_financials():
+            response.update({
+                "posted_value": posting["amount"],
+                "currency": posting["currency"],
+                "cost_ledger": posting["cost_ledger"],
+            })
+        return response
+
+    def _check_material_availability_internal(self):
+        self._require_optimized()
+        requirements = self._material_requirements()
+        shortages = []
+        for item in requirements:
+            available = self._available_qty(item["item_code"], item["warehouse"])
+            item["available_qty"] = available
+            item["shortage_qty"] = max(flt(item["qty"] - available), 0)
+            if item["shortage_qty"] > 0:
+                shortages.append(item)
+        return {"requirements": requirements, "has_shortage": bool(shortages), "shortages": shortages}
 
     def _create_factory_pieces(self):
         if self.order_type == "Internal Replacement":
@@ -185,6 +207,7 @@ class CuttingOrder(Document):
             filters={"cutting_order": self.name},
             fields=["name", "board_no"],
             order_by="board_no asc",
+            limit_page_length=0,
         )
         for layout_row in layouts:
             layout = frappe.get_doc("Board Layout", layout_row.name)
@@ -218,6 +241,7 @@ class CuttingOrder(Document):
             filters={"cutting_order": self.name},
             fields=["name", "board_no"],
             order_by="board_no asc",
+            limit_page_length=0,
         )
         for index, board in enumerate(result["boards"]):
             layout_name = layouts[index].name if index < len(layouts) else None
@@ -289,7 +313,7 @@ class CuttingOrder(Document):
         return pieces
 
     def _replace_layouts(self, result):
-        for name in frappe.get_all("Board Layout", filters={"cutting_order": self.name}, pluck="name"):
+        for name in frappe.get_all("Board Layout", filters={"cutting_order": self.name}, pluck="name", limit_page_length=0):
             frappe.delete_doc("Board Layout", name, ignore_permissions=True)
         for board_no, board in enumerate(result["boards"], 1):
             layout = frappe.new_doc("Board Layout")
