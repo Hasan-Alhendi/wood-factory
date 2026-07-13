@@ -19,6 +19,8 @@ SUPERVISION_ROLES = MANAGEMENT_ROLES | {FACTORY_SUPERVISOR}
 PLANNING_ROLES = SUPERVISION_ROLES | {FACTORY_PLANNER}
 ACCOUNTING_ROLES = {"System Manager", "Accounts Manager", FACTORY_MANAGER, FACTORY_ACCOUNTANT}
 DELIVERY_ROLES = SUPERVISION_ROLES | {FACTORY_DELIVERY_USER}
+CUTTING_PLANNING_ROLES = PLANNING_ROLES | {FACTORY_CUTTING_OPERATOR}
+MATERIAL_POSTING_ROLES = PLANNING_ROLES | {"Stock Manager"}
 
 STAGE_ROLE_MAP = {
     "Cutting": FACTORY_CUTTING_OPERATOR,
@@ -70,6 +72,14 @@ def require_accounting(user=None):
 
 def require_delivery(user=None):
     require_any_role(DELIVERY_ROLES, _("Factory delivery permission is required"), user=user)
+
+
+def require_cutting_planning(user=None):
+    require_any_role(CUTTING_PLANNING_ROLES, _("Cutting planning permission is required"), user=user)
+
+
+def require_material_posting(user=None):
+    require_any_role(MATERIAL_POSTING_ROLES, _("Material posting permission is required"), user=user)
 
 
 def require_stage_access(stage, user=None):
