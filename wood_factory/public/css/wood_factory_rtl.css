@@ -1,0 +1,76 @@
+/* Wood Factory Arabic / RTL compatibility.
+ * Frappe handles the global page direction. These rules keep custom operational
+ * dashboards, numeric cells, identifiers, and mixed Arabic/English content clear.
+ */
+
+html[dir="rtl"] .factory-control-center-page,
+html[dir="rtl"] .factory-dashboard-page,
+html[dir="rtl"] .factory-schedule-page,
+html[dir="rtl"] .factory-capacity-page,
+html[dir="rtl"] .factory-worker-page,
+html[dir="rtl"] .factory-scan-page,
+html[dir="rtl"] .factory-reports-page,
+html[dir="rtl"] .factory-performance-page,
+html[dir="rtl"] .factory-issue-analysis-page,
+html[dir="rtl"] .factory-order-timeline-page,
+html[dir="rtl"] .factory-demo-data-page {
+    direction: rtl;
+    text-align: right;
+}
+
+html[dir="rtl"] .factory-control-center-page button,
+html[dir="rtl"] .factory-dashboard-page button,
+html[dir="rtl"] .factory-schedule-page button,
+html[dir="rtl"] .factory-capacity-page button,
+html[dir="rtl"] .factory-worker-page button,
+html[dir="rtl"] .factory-scan-page button,
+html[dir="rtl"] .factory-reports-page button,
+html[dir="rtl"] .factory-performance-page button,
+html[dir="rtl"] .factory-issue-analysis-page button,
+html[dir="rtl"] .factory-order-timeline-page button,
+html[dir="rtl"] .factory-demo-data-page button {
+    text-align: right;
+}
+
+html[dir="rtl"] .control-section-head,
+html[dir="rtl"] .demo-section-head,
+html[dir="rtl"] .schedule-row,
+html[dir="rtl"] .bottleneck-panel,
+html[dir="rtl"] .recommendation-panel {
+    direction: rtl;
+}
+
+/* Document names, item codes, QR values and dimensions remain readable LTR. */
+html[dir="rtl"] code,
+html[dir="rtl"] pre,
+html[dir="rtl"] .text-monospace,
+html[dir="rtl"] [data-fieldname="piece_uid"] input,
+html[dir="rtl"] [data-fieldname="item_code"] input,
+html[dir="rtl"] [data-fieldname="qr_code"] input,
+html[dir="rtl"] [data-fieldname$="_mm"] input,
+html[dir="rtl"] [data-fieldname$="_m2"] input {
+    direction: ltr;
+    text-align: left;
+    unicode-bidi: embed;
+}
+
+html[dir="rtl"] .control-table,
+html[dir="rtl"] .demo-table,
+html[dir="rtl"] .table-responsive {
+    direction: rtl;
+}
+
+html[dir="rtl"] .control-row > *,
+html[dir="rtl"] .control-alert-row > *,
+html[dir="rtl"] .demo-row > * {
+    text-align: right;
+}
+
+/* Keep percentages, money and durations visually stable in mixed text. */
+html[dir="rtl"] .queue-number,
+html[dir="rtl"] [class*="eta-risk-"],
+html[dir="rtl"] .schedule-kpi b,
+html[dir="rtl"] .control-kpi b,
+html[dir="rtl"] .demo-kpi b {
+    unicode-bidi: isolate;
+}
