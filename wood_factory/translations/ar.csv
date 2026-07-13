@@ -530,7 +530,7 @@ Order / Customer,الطلب / العميل
 Revenue,الإيراد
 Actual Cost,التكلفة الفعلية
 Error Cost,تكلفة الخطأ
-Costing,التكلفة
+Costing,احتساب التكلفة
 Customer Materials,مواد العميل
 Customer Labor,عمالة العميل
 Customer Machines,ماكينات العميل
@@ -607,10 +607,8 @@ Auto Assign Workstation: {0},تعيين محطة العمل تلقائيًا: {0
 Start / Resume: {0},بدء / استئناف: {0}
 Complete: {0},إنهاء: {0}
 Block: {0},إيقاف: {0}
-This workstation belongs to {0},not {1}
 Selected workstation is not active,محطة العمل المحددة غير فعالة
 Delivery status updated,تم تحديث حالة التسليم
-Stage completed. Labor: {0},Machine: {1}
 Stage completed. Costing status: {0},اكتملت المرحلة. حالة التكلفة: {0}
 Assigned to {0},تم التعيين إلى {0}
 Production stage updated,تم تحديث مرحلة الإنتاج
@@ -620,7 +618,6 @@ Approved,معتمد
 In Cutting,قيد القص
 Optimized,تم ترتيب الألواح
 Optimize Board Layout,ترتيب القطع على الألواح
-Optimized with {0}: {1} board(s),{2}% waste
 Check Material Stock,فحص مخزون المواد
 Materials,المواد
 Material shortage found,يوجد نقص في المواد
@@ -696,3 +693,6 @@ No urgent production recommendations. Current flow is stable.,لا توجد تو
 Action,الإجراء
 Recommendation,التوصية
 No recommendations,لا توجد توصيات
+"This workstation belongs to {0}, not {1}",محطة العمل هذه تابعة لمرحلة {0} وليست لمرحلة {1}
+"Stage completed. Labor: {0}, Machine: {1}, Costing: {2}",اكتملت المرحلة. العمالة: {0}، الماكينة: {1}، حالة التكلفة: {2}
+"Optimized with {0}: {1} board(s), {2}% waste",تم الترتيب باستخدام {0}: عدد الألواح {1}، ونسبة الهدر {2}%
