@@ -464,3 +464,134 @@ The operation is idempotent and does not delete production data.,يمكن تكر
 Generating realistic factory demo data...,جارٍ إنشاء بيانات تجريبية واقعية للمعمل...
 Demo Dataset Created with Warnings,تم إنشاء البيانات التجريبية مع وجود تحذيرات
 Factory demo dataset is ready,بيانات المعمل التجريبية جاهزة
+Order,الطلب
+Stage / Workstation,المرحلة / محطة العمل
+Risk,المخاطر
+waiting,قيد الانتظار
+Scan QR / Barcode,مسح QR / الباركود
+All stage work,جميع أعمال المرحلة
+Whole orders,الطلبات الكاملة
+Separate pieces,القطع المنفصلة
+Workstation Queue,طابور محطة العمل
+Whole Factory Orders,أوامر تشغيل المعمل الكاملة
+No whole orders waiting in this queue,لا توجد طلبات كاملة بانتظار هذا الطابور
+Exception Pieces Only,القطع الاستثنائية فقط
+No pieces require separate tracking,لا توجد قطع تحتاج إلى متابعة منفصلة
+Unassigned,غير معيّن
+Stage Status,حالة المرحلة
+Delayed,متأخر
+days,أيام
+Assign on start,تعيين عند البدء
+Separate piece,قطعة منفصلة
+Cumulative costing,حالة التكلفة التراكمية
+Last stage,المرحلة الأخيرة
+min,دقيقة
+Block Work,إيقاف العمل
+Confirm,تأكيد
+Scan Factory Code,مسح رمز المعمل
+Scan the whole order code. Only exception pieces are opened separately.,امسح رمز الطلب الكامل، ولا تُفتح القطع منفصلة إلا إذا كانت قطعًا استثنائية.
+Open Work,فتح العمل
+QR / Barcode,QR / الباركود
+QR Code,رمز QR
+Barcode,الباركود
+Performance,الأداء
+Issue Analysis,تحليل المشكلات
+Needs Intervention,بحاجة إلى تدخل
+Needs Management Intervention,بحاجة إلى تدخل إداري
+Orders by Current Stage,الطلبات حسب المرحلة الحالية
+Blocked Work,الأعمال المتوقفة
+Nothing to show,لا توجد بيانات للعرض
+Administrator,مدير النظام
+Order Status,حالة الطلب
+New,جديد
+Waiting for Materials,بانتظار المواد
+Profitability Report,تقرير الربحية
+Waste Analysis,تحليل الهدر
+Production Performance,أداء الإنتاج
+Detailed Reports,التقارير التفصيلية
+Select a Company to calculate financial reports in one currency,اختر شركة لحساب التقارير المالية بعملة واحدة
+Reporting period,فترة التقرير
+Profitability by Factory Order,الربحية حسب أمر تشغيل المعمل
+Revenue uses Sales Order net total before taxes,يعتمد الإيراد على صافي إجمالي طلب البيع قبل الضرائب
+Customer production versus factory-funded errors,إنتاج العميل مقابل الأخطاء التي يتحملها المعمل
+Orders grouped by Factory Order date,الطلبات مجمعة حسب تاريخ أمر تشغيل المعمل
+Waste and Remnant Recovery by Material,الهدر واسترداد الفضلات حسب المادة
+Recovered value,القيمة المستردة
+Recovery rate,نسبة الاسترداد
+Stage Productivity,إنتاجية المراحل
+recorded operations,عمليات مسجلة
+total work hours,إجمالي ساعات العمل
+blocked hours,ساعات توقف
+Sorted by net sales,مرتبة حسب صافي المبيعات
+Net sales,صافي المبيعات
+Actual cost,التكلفة الفعلية
+Factory errors,أخطاء المعمل
+Order / Customer,الطلب / العميل
+Revenue,الإيراد
+Actual Cost,التكلفة الفعلية
+Error Cost,تكلفة الخطأ
+Costing,التكلفة
+Customer Materials,مواد العميل
+Customer Labor,عمالة العميل
+Customer Machines,ماكينات العميل
+Factory Errors / Rework,أخطاء المعمل / إعادة العمل
+Waste Within Materials,الهدر ضمن المواد
+Month,الشهر
+Orders,الطلبات
+Profit,الربح
+Margin,الهامش
+Board Material,مادة اللوح
+Boards,الألواح
+Gross Unused,إجمالي غير المستخدم
+Recovered,مسترد
+Scrap,قصاصات متلفة
+Net Waste,صافي الهدر
+Worker,العامل
+Hours,الساعات
+Avg Min,متوسط الدقائق
+Rework Hrs,ساعات إعادة العمل
+Cost,التكلفة
+No data for the selected filters,لا توجد بيانات للفلاتر المحددة
+Refresh Forecast,تحديث التوقعات
+Workstations,محطات العمل
+Capacity Settings,إعدادات الطاقة الإنتاجية
+Forecast horizon,أفق التوقع
+working day(s),أيام عمل
+Critical Stages,المراحل الحرجة
+Active Workstations,محطات العمل الفعالة
+Maximum Load,أقصى حمل
+Predicted Bottlenecks,الاختناقات المتوقعة
+load,حمل
+workstation(s) active,محطات عمل فعالة
+No available capacity,لا توجد طاقة إنتاجية متاحة
+capacity days required,أيام طاقة إنتاجية مطلوبة
+Stage Capacity Forecast,توقع الطاقة حسب المرحلة
+Queued,في الطابور
+Daily Capacity,الطاقة اليومية
+No queued production work,لا توجد أعمال إنتاج في الطابور
+Orders Measured,الطلبات المقاسة
+Completed Stages,المراحل المكتملة
+Actual Work Hours,ساعات العمل الفعلية
+Likely Bottlenecks,الاختناقات المحتملة
+Worker Activity,نشاط العمال
+Avg. Minutes,متوسط الدقائق
+min avg,متوسط بالدقائق
+blocked,متوقف
+Not enough completed production data yet,لا توجد بيانات إنتاج مكتملة كافية بعد
+Stoppages,التوقفات
+Stoppage Causes,أسباب التوقف
+Piece Error Types,أنواع أخطاء القطع
+Issues by Production Stage,المشكلات حسب مرحلة الإنتاج
+occurrence(s),مرات حدوث
+No issues recorded for this period,لا توجد مشكلات مسجلة خلال هذه الفترة
+By,بواسطة
+No production events recorded yet,لا توجد أحداث إنتاج مسجلة بعد
+Stages Initialized,تمت تهيئة المراحل
+Workstation Assigned,تم تعيين محطة العمل
+Queue Rebalanced,تمت إعادة توزيع الطابور
+Stage Started,بدأت المرحلة
+Stage Resumed,تم استئناف المرحلة
+Stage Blocked,توقفت المرحلة
+Stage Completed,اكتملت المرحلة
+Exception Reported,تم الإبلاغ عن استثناء
+Exception Resolved,تم حل الاستثناء
