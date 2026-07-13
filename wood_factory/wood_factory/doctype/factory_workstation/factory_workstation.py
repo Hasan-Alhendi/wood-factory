@@ -2,6 +2,8 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import flt
 
+from wood_factory.security import require_planning, require_supervision
+
 
 PRIORITY_WEIGHT = {"Urgent": 4000, "High": 3000, "Normal": 2000, "Low": 1000}
 
@@ -30,10 +32,12 @@ class FactoryWorkstation(Document):
 
     @frappe.whitelist()
     def preview_queue_rebalancing(self):
+        require_planning()
         return self._queue_rebalancing(apply=False)
 
     @frappe.whitelist()
     def rebalance_waiting_queue(self):
+        require_supervision()
         if self.status == "Active":
             frappe.throw("Automatic evacuation is only allowed for unavailable workstations")
         return self._queue_rebalancing(apply=True)
@@ -52,6 +56,7 @@ class FactoryWorkstation(Document):
             "Factory Workstation",
             filters={"stage": self.stage, "status": "Active", "name": ["!=", self.name]},
             fields=["name", "effective_minutes_per_day", "company"],
+            limit_page_length=0,
         )
         candidates = [row for row in candidates if not self.company or not row.company or row.company == self.company]
         loads = dict(frappe.db.sql("""
