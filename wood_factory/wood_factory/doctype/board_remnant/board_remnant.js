@@ -3,7 +3,7 @@ frappe.ui.form.on("Board Remnant", {
         if (frm.is_new()) return;
         if (frm.doc.status === "Available") {
             frm.add_custom_button(__("Reserve for Piece"), () => reserve_remnant(frm), __("Remnant"));
-            frm.add_custom_button(__("Scrap"), () => run_remnant_method(frm, "scrap"), __("Remnant"));
+            frm.add_custom_button(__("Scrap Remnant"), () => run_remnant_method(frm, "scrap"), __("Remnant"));
         }
         if (frm.doc.status === "Reserved") {
             frm.add_custom_button(__("Consume"), () => run_remnant_method(frm, "consume"), __("Remnant"));
