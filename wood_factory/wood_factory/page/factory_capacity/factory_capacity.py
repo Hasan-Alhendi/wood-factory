@@ -1,6 +1,8 @@
 import frappe
 from frappe.utils import flt
 
+from wood_factory.security import require_planning
+
 
 STAGES = ["Cutting", "Edge Banding", "Drilling", "Assembly", "Quality Inspection", "Packing"]
 CAPACITY_FIELDS = {
@@ -14,6 +16,7 @@ ACTIVE = ["Ready for Production", "In Production", "Quality Inspection", "Rework
 
 @frappe.whitelist()
 def get_capacity_plan():
+    require_planning()
     settings = frappe.get_single("Factory Capacity Settings")
     planning_days = settings.planning_days or 5
     history = dict(frappe.db.sql("""select stage, avg(actual_minutes) from `tabFactory Order Stage` where status='Completed' and actual_minutes > 0 group by stage"""))
@@ -22,7 +25,11 @@ def get_capacity_plan():
         inner join `tabFactory Order` o on o.name=s.parent
         where o.status in %(statuses)s and s.status in ('Pending','Ready','In Progress','Blocked') group by s.stage
     """, {"statuses": ACTIVE}, as_dict=True)
-    workstations = frappe.get_all("Factory Workstation", fields=["name", "stage", "status", "minutes_per_day", "efficiency_percent", "effective_minutes_per_day", "unavailable_reason"])
+    workstations = frappe.get_all(
+        "Factory Workstation",
+        fields=["name", "stage", "status", "minutes_per_day", "efficiency_percent", "effective_minutes_per_day", "unavailable_reason"],
+        limit_page_length=0,
+    )
     pending_map = {row.stage: row.orders for row in pending}
     by_stage = {stage: [] for stage in STAGES}
     for workstation in workstations:
