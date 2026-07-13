@@ -1,12 +1,15 @@
 import frappe
 from frappe.utils import add_days, flt, getdate, nowdate
 
+from wood_factory.security import ACCOUNTING_ROLES, MANAGEMENT_ROLES, PLANNING_ROLES, require_any_role
+
 
 STAGES = ["Cutting", "Edge Banding", "Drilling", "Assembly", "Quality Inspection", "Packing"]
 
 
 @frappe.whitelist()
 def get_performance_data(from_date=None, to_date=None):
+    require_any_role(MANAGEMENT_ROLES | PLANNING_ROLES | ACCOUNTING_ROLES, "You are not permitted to view factory performance analytics")
     to_date = getdate(to_date or nowdate())
     from_date = getdate(from_date or add_days(to_date, -30))
     if from_date > to_date:
@@ -28,15 +31,23 @@ def get_performance_data(from_date=None, to_date=None):
 
     for row in rows:
         metric = stage_map.setdefault(row.stage, {"stage": row.stage, "completed": 0, "work_minutes": 0, "blocked_minutes": 0, "avg_minutes": 0, "blocked_percent": 0})
-        work = flt(row.actual_minutes); blocked = flt(row.blocked_minutes)
-        metric["completed"] += 1; metric["work_minutes"] += work; metric["blocked_minutes"] += blocked
-        total_work += work; total_blocked += blocked; orders.add(row.factory_order)
+        work = flt(row.actual_minutes)
+        blocked = flt(row.blocked_minutes)
+        metric["completed"] += 1
+        metric["work_minutes"] += work
+        metric["blocked_minutes"] += blocked
+        total_work += work
+        total_blocked += blocked
+        orders.add(row.factory_order)
         user = row.responsible or "Unassigned"
         worker = user_map.setdefault(user, {"user": user, "completed_stages": 0, "work_minutes": 0, "blocked_minutes": 0})
-        worker["completed_stages"] += 1; worker["work_minutes"] += work; worker["blocked_minutes"] += blocked
+        worker["completed_stages"] += 1
+        worker["work_minutes"] += work
+        worker["blocked_minutes"] += blocked
 
     for metric in stage_map.values():
-        metric["work_minutes"] = flt(metric["work_minutes"], 2); metric["blocked_minutes"] = flt(metric["blocked_minutes"], 2)
+        metric["work_minutes"] = flt(metric["work_minutes"], 2)
+        metric["blocked_minutes"] = flt(metric["blocked_minutes"], 2)
         metric["avg_minutes"] = flt(metric["work_minutes"] / metric["completed"], 2) if metric["completed"] else 0
         elapsed = metric["work_minutes"] + metric["blocked_minutes"]
         metric["blocked_percent"] = flt(metric["blocked_minutes"] / elapsed * 100, 2) if elapsed else 0
