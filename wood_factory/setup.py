@@ -116,7 +116,6 @@ DOC_PERMISSION_MATRIX = {
     "Factory Piece Stage Cost": _manager_rows(READ_EXPORT) + _account_rows(READ_EXPORT),
     "Factory Order Event": _manager_rows(READ_EXPORT) + [
         _entry(FACTORY_SUPERVISOR, READ_EXPORT), _entry(FACTORY_PLANNER, READ_EXPORT),
-        *[_entry(role, READ) for role in STAGE_ROLES], _entry(FACTORY_DELIVERY_USER, READ),
     ],
 }
 
