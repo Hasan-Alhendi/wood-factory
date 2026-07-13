@@ -1,6 +1,8 @@
 import frappe
 from frappe.utils import date_diff, getdate, nowdate
 
+from wood_factory.security import accessible_stages, require_operational_view, require_stage_access
+
 
 STAGES = ["Cutting", "Edge Banding", "Drilling", "Assembly", "Quality Inspection", "Packing"]
 PRIORITY_WEIGHT = {"Urgent": 4000, "High": 3000, "Normal": 2000, "Low": 1000}
@@ -8,15 +10,32 @@ PRIORITY_WEIGHT = {"Urgent": 4000, "High": 3000, "Normal": 2000, "Low": 1000}
 
 @frappe.whitelist()
 def get_worker_queue(stage=None, workstation=None):
+    require_operational_view()
     user = frappe.session.user
-    stage = frappe.db.get_value("Factory Workstation", workstation, "stage") if workstation else stage
+    if workstation:
+        stage = frappe.db.get_value("Factory Workstation", workstation, "stage")
+        if not stage:
+            frappe.throw("Workstation does not exist")
+    allowed_stages = accessible_stages()
+    if stage:
+        require_stage_access(stage)
+    elif len(allowed_stages) == 1:
+        stage = allowed_stages[0]
+
     order_filters = {
         "status": ["not in", ["New", "Confirmed", "Waiting for Materials", "Delivered", "Closed", "Cancelled"]],
         "current_stage": ["is", "set"],
     }
     if stage:
         order_filters["current_stage"] = stage
-    orders = frappe.get_all("Factory Order", filters=order_filters, fields=["name", "customer", "current_stage", "status", "priority", "progress_percent", "expected_delivery_date", "delay_days", "current_responsible", "modified"])
+    elif allowed_stages:
+        order_filters["current_stage"] = ["in", allowed_stages]
+    orders = frappe.get_all(
+        "Factory Order",
+        filters=order_filters,
+        fields=["name", "customer", "current_stage", "status", "priority", "progress_percent", "expected_delivery_date", "delay_days", "current_responsible", "modified"],
+        limit_page_length=0,
+    )
     exception_counts = dict(frappe.db.sql("""select factory_order, count(*) from `tabPiece Exception` where status not in ('Resolved','Cancelled') group by factory_order"""))
     today = getdate(nowdate())
     queued_orders = []
@@ -39,25 +58,35 @@ def get_worker_queue(stage=None, workstation=None):
     exception_filters = {"is_exception": 1, "status": ["not in", ["Completed", "Cancelled"]]}
     if stage:
         exception_filters["current_stage"] = stage
+    elif allowed_stages:
+        exception_filters["current_stage"] = ["in", allowed_stages]
     exceptions = frappe.get_all(
         "Factory Piece",
         filters=exception_filters,
         fields=["name", "piece_uid", "factory_order", "part_name", "width_mm", "height_mm", "current_stage", "status", "block_reason", "responsible", "workstation", "costing_status", "last_stage_actual_minutes", "last_stage_costing_status"],
         order_by="modified asc",
+        limit_page_length=0,
     )
     if workstation:
         exceptions = [row for row in exceptions if not row.workstation or row.workstation == workstation]
 
-    workstations = frappe.get_all("Factory Workstation", filters={"status": "Active", **({"stage": stage} if stage else {})}, fields=["name", "stage"], order_by="stage asc, name asc")
-    return {"user": user, "stage": stage, "workstation": workstation, "orders": queued_orders, "exceptions": exceptions, "stages": STAGES, "workstations": workstations}
+    workstation_filters = {"status": "Active"}
+    if stage:
+        workstation_filters["stage"] = stage
+    elif allowed_stages:
+        workstation_filters["stage"] = ["in", allowed_stages]
+    workstations = frappe.get_all("Factory Workstation", filters=workstation_filters, fields=["name", "stage"], order_by="stage asc, name asc", limit_page_length=0)
+    return {"user": user, "stage": stage, "workstation": workstation, "orders": queued_orders, "exceptions": exceptions, "stages": allowed_stages, "workstations": workstations}
 
 
 @frappe.whitelist()
 def run_order_action(order, action, reason=None, workstation=None):
+    require_operational_view()
     doc = frappe.get_doc("Factory Order", order)
     row = next((stage for stage in doc.production_stages if stage.stage == doc.current_stage and stage.status in ("Ready", "In Progress", "Blocked")), None)
     if not row:
         frappe.throw("No active production stage found")
+    require_stage_access(row.stage)
     if workstation and row.workstation != workstation:
         frappe.throw(f"Order {order} is assigned to {row.workstation or 'another queue'}, not {workstation}")
     if action == "start":
@@ -71,9 +100,11 @@ def run_order_action(order, action, reason=None, workstation=None):
 
 @frappe.whitelist()
 def run_piece_action(piece, action, reason=None, workstation=None):
+    require_operational_view()
     doc = frappe.get_doc("Factory Piece", piece)
     if not doc.is_exception:
         frappe.throw("Normal pieces are controlled by the whole Factory Order")
+    require_stage_access(doc.current_stage)
     if action == "start":
         return doc.start_stage(workstation=workstation)
     if action == "complete":
