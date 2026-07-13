@@ -3,9 +3,12 @@ from collections import Counter, defaultdict
 import frappe
 from frappe.utils import add_days, flt, getdate, nowdate
 
+from wood_factory.security import FACTORY_QUALITY_INSPECTOR, SUPERVISION_ROLES, require_any_role
+
 
 @frappe.whitelist()
 def get_issue_analysis(from_date=None, to_date=None):
+    require_any_role(SUPERVISION_ROLES | {FACTORY_QUALITY_INSPECTOR}, "You are not permitted to view factory issue analysis")
     to_date = getdate(to_date or nowdate())
     from_date = getdate(from_date or add_days(to_date, -30))
     if from_date > to_date:
@@ -29,10 +32,15 @@ def get_issue_analysis(from_date=None, to_date=None):
     exception_types = Counter(row.exception_type or "Other" for row in exceptions)
     stage_issues = defaultdict(lambda: {"stage": "", "stoppages": 0, "blocked_minutes": 0, "exceptions": 0})
     for row in blocked:
-        item = stage_issues[row.stage]; item["stage"] = row.stage; item["stoppages"] += 1; item["blocked_minutes"] += flt(row.blocked_minutes)
+        item = stage_issues[row.stage]
+        item["stage"] = row.stage
+        item["stoppages"] += 1
+        item["blocked_minutes"] += flt(row.blocked_minutes)
     for row in exceptions:
         stage = row.reported_stage or "Unknown"
-        item = stage_issues[stage]; item["stage"] = stage; item["exceptions"] += 1
+        item = stage_issues[stage]
+        item["stage"] = stage
+        item["exceptions"] += 1
 
     stages = sorted(stage_issues.values(), key=lambda row: (-(row["blocked_minutes"] + row["exceptions"] * 60), row["stage"]))
     total_blocked = sum(flt(row.blocked_minutes) for row in blocked)
