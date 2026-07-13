@@ -9,7 +9,7 @@ from wood_factory.security import require_management
 def get_demo_status(company=None):
     require_management()
     context = demo_data._company_context(demo_data._resolve_company(company))
-    return demo_data._status(context)
+    return _status(context)
 
 
 @frappe.whitelist()
@@ -46,9 +46,27 @@ def create_demo_dataset(company=None, include_users=1, include_stock=1):
         frappe.db.rollback(save_point="wood_factory_demo_dataset")
         raise
 
-    output = demo_data._status(context)
+    output = _status(context)
     output.update({"created_or_refreshed": results, "warnings": warnings})
     return output
+
+
+def _status(context):
+    data = demo_data._status(context)
+    order_names = [row["factory_order"] for row in data.get("scenarios", []) if row.get("factory_order")]
+    cutting_orders = frappe.get_all(
+        "Cutting Order",
+        filters={"factory_order": ["in", order_names]},
+        pluck="name",
+        limit_page_length=0,
+    ) if order_names else []
+    data.setdefault("counts", {})["piece_exceptions"] = frappe.db.count(
+        "Piece Exception", {"factory_order": ["in", order_names]}
+    ) if order_names else 0
+    data["counts"]["remnants"] = frappe.db.count(
+        "Board Remnant", {"source_cutting_order": ["in", cutting_orders]}
+    ) if cutting_orders else 0
+    return data
 
 
 def _ensure_scenario(context, scenario, warnings):
