@@ -17,11 +17,17 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.14"
+      - name: Install focused lint dependency
+        run: python -m pip install ruff==0.14.10
       - name: Compile new acceptance modules
         run: |
           python -m py_compile \
             wood_factory/e2e.py \
             wood_factory/tests/test_e2e_factory_flow.py
+      - name: Lint new acceptance modules
+        run: |
+          ruff check wood_factory/e2e.py wood_factory/tests/test_e2e_factory_flow.py
+          ruff format --check wood_factory/e2e.py wood_factory/tests/test_e2e_factory_flow.py
       - name: Run pure Python factory tests
         run: |
           python -m unittest wood_factory.tests.test_arabic_translations
