@@ -21,15 +21,15 @@ function run_exception_method(frm, method, args = {}) { return frm.call(method, 
 function find_best_remnant(frm) {
     frm.call("find_best_remnant").then(r => {
         const result = r.message || {};
-        if (result.found) frappe.show_alert({message: __(`Reserved remnant ${result.remnant} with ${result.waste_area_m2} m² remaining area`), indicator: "green"});
-        else frappe.msgprint(__(`No available remnant of board item ${result.board_item} fits this replacement piece. Create a factory-funded cutting order.`));
+        if (result.found) frappe.show_alert({message: __("Reserved remnant {0} with {1} m² remaining area", [result.remnant, result.waste_area_m2]), indicator: "green"});
+        else frappe.msgprint(__("No available remnant of board item {0} fits this replacement piece. Create a factory-funded cutting order.", [result.board_item]));
         return frm.reload_doc();
     });
 }
 function create_replacement_cutting(frm) {
     frm.call("create_replacement_cutting_order").then(r => {
         const result = r.message || {};
-        frappe.show_alert({message: __(`Created internal cutting order ${result.cutting_order}; customer will not be billed`), indicator: "green"});
+        frappe.show_alert({message: __("Created internal cutting order {0}; customer will not be billed", [result.cutting_order]), indicator: "green"});
         return frm.reload_doc();
     });
 }
