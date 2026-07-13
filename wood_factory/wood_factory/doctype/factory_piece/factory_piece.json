@@ -22,12 +22,12 @@
   {"default": "0", "fieldname": "blocked_minutes", "fieldtype": "Float", "label": "Blocked Minutes", "read_only": 1},
   {"fieldname": "block_reason", "fieldtype": "Small Text", "label": "Block Reason"},
   {"fieldname": "completed_at", "fieldtype": "Datetime", "label": "Completed At", "read_only": 1},
-  {"default": "Pending", "fieldname": "costing_status", "fieldtype": "Select", "in_list_view": 1, "label": "Cumulative Costing Status", "options": "Pending\nPartial\nPosted", "read_only": 1},
+  {"default": "Pending", "fieldname": "costing_status", "fieldtype": "Select", "label": "Cumulative Costing Status", "options": "Pending\nPartial\nPosted", "read_only": 1},
   {"fieldname": "last_stage_actual_minutes", "fieldtype": "Float", "label": "Last Stage Actual Minutes", "read_only": 1},
-  {"fieldname": "last_stage_labor_cost", "fieldtype": "Currency", "label": "Last Stage Labor Cost", "read_only": 1},
-  {"fieldname": "last_stage_machine_cost", "fieldtype": "Currency", "label": "Last Stage Machine Cost", "read_only": 1},
+  {"fieldname": "last_stage_labor_cost", "fieldtype": "Currency", "label": "Last Stage Labor Cost", "permlevel": 1, "read_only": 1},
+  {"fieldname": "last_stage_machine_cost", "fieldtype": "Currency", "label": "Last Stage Machine Cost", "permlevel": 1, "read_only": 1},
   {"fieldname": "last_stage_costing_status", "fieldtype": "Select", "label": "Last Stage Costing Status", "options": "Pending\nPartial\nPosted", "read_only": 1}
  ],
- "links": [], "modified": "2026-07-12 00:00:00.000000", "modified_by": "Administrator", "module": "Wood Factory", "name": "Factory Piece", "owner": "Administrator",
+ "links": [], "modified": "2026-07-13 00:00:00.000000", "modified_by": "Administrator", "module": "Wood Factory", "name": "Factory Piece", "owner": "Administrator",
  "permissions": [{"create": 1, "delete": 1, "email": 1, "export": 1, "print": 1, "read": 1, "report": 1, "role": "System Manager", "share": 1, "write": 1}], "sort_field": "modified", "sort_order": "DESC", "states": [], "title_field": "piece_uid"
 }
