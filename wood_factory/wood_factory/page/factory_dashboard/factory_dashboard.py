@@ -1,6 +1,8 @@
 import frappe
 from frappe.utils import cint, date_diff, getdate, nowdate
+
 from wood_factory.alerts import evaluate_factory_alerts
+from wood_factory.security import require_planning
 
 
 ACTIVE_ORDER_STATUSES = [
@@ -11,11 +13,13 @@ STAGES = ["Cutting", "Edge Banding", "Drilling", "Assembly", "Quality Inspection
 
 @frappe.whitelist()
 def get_dashboard_data():
+    require_planning()
     orders = frappe.get_all(
         "Factory Order",
         filters={"status": ["in", ACTIVE_ORDER_STATUSES]},
         fields=["name", "customer", "status", "current_stage", "progress_percent", "expected_delivery_date", "delay_days", "current_responsible", "modified"],
         order_by="expected_delivery_date asc, modified asc",
+        limit_page_length=0,
     )
     today = getdate(nowdate())
     for order in orders:
@@ -33,12 +37,14 @@ def get_dashboard_data():
         filters={"status": ["not in", ["Resolved", "Cancelled"]]},
         fields=["name", "factory_piece", "factory_order", "exception_type", "reported_stage", "status", "responsible", "reported_at"],
         order_by="reported_at asc",
+        limit_page_length=0,
     )
     blocked_stages = frappe.get_all(
         "Factory Order Stage",
         filters={"status": "Blocked"},
         fields=["parent", "stage", "block_reason", "blocked_at", "responsible"],
         order_by="blocked_at asc",
+        limit_page_length=0,
     )
     intervention_alerts = evaluate_factory_alerts()
     delayed = sorted((order for order in orders if order["is_delayed"]), key=lambda row: (-row["computed_delay_days"], row["name"]))
