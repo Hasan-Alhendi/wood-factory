@@ -91,11 +91,8 @@ def require_stage_access(stage, user=None):
 
 
 def stage_accessible_to_user(stage, user=None):
-    try:
-        require_stage_access(stage, user=user)
-        return True
-    except frappe.PermissionError:
-        return False
+    roles = get_user_roles(user)
+    return bool(roles & SUPERVISION_ROLES) or bool(STAGE_ROLE_MAP.get(stage) and STAGE_ROLE_MAP[stage] in roles)
 
 
 def accessible_stages(user=None):
@@ -123,8 +120,8 @@ def factory_order_query(user=None):
     roles = get_user_roles(user)
     if roles & (PLANNING_ROLES | ACCOUNTING_ROLES | {"Stock Manager"}):
         return ""
-    stages = accessible_stages(user)
     clauses = []
+    stages = accessible_stages(user)
     if stages:
         clauses.append("`tabFactory Order`.`current_stage` in ({})".format(",".join(frappe.db.escape(stage) for stage in stages)))
     if FACTORY_DELIVERY_USER in roles:
@@ -137,8 +134,8 @@ def factory_piece_query(user=None):
     roles = get_user_roles(user)
     if roles & (PLANNING_ROLES | ACCOUNTING_ROLES | {"Stock Manager"}):
         return ""
-    stages = accessible_stages(user)
     clauses = []
+    stages = accessible_stages(user)
     if stages:
         clauses.append("`tabFactory Piece`.`current_stage` in ({})".format(",".join(frappe.db.escape(stage) for stage in stages)))
     if FACTORY_DELIVERY_USER in roles:
@@ -167,6 +164,44 @@ def factory_alert_query(user=None):
         return ""
     escaped = frappe.db.escape(user)
     return f"(`tabFactory Alert Log`.`responsible`={escaped} or `tabFactory Alert Log`.`escalated_to`={escaped})"
+
+
+def factory_order_permission(doc, user=None, permission_type=None):
+    user = user or frappe.session.user
+    roles = get_user_roles(user)
+    if roles & (PLANNING_ROLES | ACCOUNTING_ROLES | {"Stock Manager"}):
+        return True
+    if FACTORY_DELIVERY_USER in roles and doc.status in ("Ready for Delivery", "Delivered"):
+        return True
+    return stage_accessible_to_user(doc.current_stage, user=user)
+
+
+def factory_piece_permission(doc, user=None, permission_type=None):
+    user = user or frappe.session.user
+    roles = get_user_roles(user)
+    if roles & (PLANNING_ROLES | ACCOUNTING_ROLES | {"Stock Manager"}):
+        return True
+    if FACTORY_DELIVERY_USER in roles and doc.status == "Completed":
+        return True
+    return stage_accessible_to_user(doc.current_stage, user=user)
+
+
+def piece_exception_permission(doc, user=None, permission_type=None):
+    user = user or frappe.session.user
+    roles = get_user_roles(user)
+    if roles & SUPERVISION_ROLES:
+        return True
+    if permission_type == "create" and getattr(doc, "factory_piece", None):
+        stage = frappe.db.get_value("Factory Piece", doc.factory_piece, "current_stage")
+        return stage_accessible_to_user(stage, user=user)
+    return user in {getattr(doc, "reported_by", None), getattr(doc, "responsible", None)} or stage_accessible_to_user(getattr(doc, "reported_stage", None), user=user)
+
+
+def factory_alert_permission(doc, user=None, permission_type=None):
+    user = user or frappe.session.user
+    if has_any_role(SUPERVISION_ROLES, user=user):
+        return True
+    return user in {getattr(doc, "responsible", None), getattr(doc, "escalated_to", None)}
 
 
 def financial_document_permission(doc, user=None, permission_type=None):
