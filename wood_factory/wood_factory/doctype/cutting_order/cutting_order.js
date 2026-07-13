@@ -31,7 +31,7 @@ function show_material_availability(frm) {
         const rows = result.requirements.map(row => `<tr><td>${frappe.utils.escape_html(row.item_code)}</td><td>${row.qty} ${row.uom}</td><td>${row.available_qty} ${row.uom}</td><td>${row.shortage_qty || "—"}</td><td>${frappe.utils.escape_html(row.warehouse)}</td></tr>`).join("");
         const indicator = result.has_shortage ? "red" : "green";
         const message = result.has_shortage ? __("Material shortage found") : __("All required materials are available");
-        frappe.msgprint({title: message, indicator, message: `<table class="table table-bordered"><thead><tr><th>${__("Item")}</th><th>${__("Required")}</th><th>${__("Available")}</th><th>${__("Shortage")}</th><th>${__("Warehouse")}</th></tr></thead><tbody>${rows}</tbody></table>`});
+        frappe.msgprint({title: message, indicator, message: `<table class="table table-bordered"><thead><tr><th>${__("Item")}</th><th>${__("Required")}</th><th>${__("Available Qty")}</th><th>${__("Shortage")}</th><th>${__("Warehouse")}</th></tr></thead><tbody>${rows}</tbody></table>`});
     });
 }
 
