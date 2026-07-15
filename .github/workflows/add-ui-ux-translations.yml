@@ -1,0 +1,62 @@
+name: Add UI UX Translations
+
+on:
+  push:
+    branches:
+      - agent/factory-order-architecture
+
+permissions:
+  contents: write
+
+jobs:
+  update-translations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: agent/factory-order-architecture
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+      - name: Add keyboard navigation translations
+        run: |
+          python - <<'PY'
+          import csv
+          from pathlib import Path
+
+          path = Path("wood_factory/translations/ar.csv")
+          rows = list(csv.reader(path.open(encoding="utf-8", newline="")))
+          sources = {row[0] for row in rows if row}
+          additions = [
+              ("Spreadsheet navigation", "التنقل كجداول البيانات"),
+              (
+                  "Enter: next row · Tab: next cell · Shift+Tab: previous cell",
+                  "Enter: الصف التالي · Tab: الخلية المجاورة · Shift+Tab: الخلية السابقة",
+              ),
+          ]
+          with path.open("a", encoding="utf-8", newline="") as output:
+              writer = csv.writer(output, lineterminator="\n")
+              for source, translation in additions:
+                  if source not in sources:
+                      writer.writerow([source, translation])
+          PY
+      - name: Validate focused UI UX assets
+        run: |
+          python -m pip install ruff==0.14.10
+          node --check wood_factory/public/js/wood_factory_ux.js
+          python -m py_compile wood_factory/tests/test_ui_ux_assets.py
+          ruff check wood_factory/tests/test_ui_ux_assets.py
+          ruff format --check wood_factory/tests/test_ui_ux_assets.py
+          python -m unittest wood_factory.tests.test_arabic_translations
+          python -m unittest wood_factory.tests.test_ui_ux_assets
+      - name: Commit translations
+        run: |
+          if git diff --quiet -- wood_factory/translations/ar.csv; then
+            echo "UI UX translations already exist"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add wood_factory/translations/ar.csv
+          git commit -m "Translate factory spreadsheet navigation"
+          git push origin HEAD:agent/factory-order-architecture
