@@ -6,6 +6,7 @@ app_email = "eng.mohamad.hasan.alhendi@gmail.com"
 app_license = "mit"
 
 app_include_css = "/assets/wood_factory/css/wood_factory_rtl.css"
+app_include_js = "/assets/wood_factory/js/wood_factory_ux.js"
 
 before_install = "wood_factory.setup.ensure_factory_roles"
 after_install = "wood_factory.setup.ensure_factory_roles"
