@@ -696,3 +696,5 @@ No recommendations,لا توجد توصيات
 "This workstation belongs to {0}, not {1}",محطة العمل هذه تابعة لمرحلة {0} وليست لمرحلة {1}
 "Stage completed. Labor: {0}, Machine: {1}, Costing: {2}",اكتملت المرحلة. العمالة: {0}، الماكينة: {1}، حالة التكلفة: {2}
 "Optimized with {0}: {1} board(s), {2}% waste",تم الترتيب باستخدام {0}: عدد الألواح {1}، ونسبة الهدر {2}%
+Spreadsheet navigation,التنقل كجداول البيانات
+Enter: next row · Tab: next cell · Shift+Tab: previous cell,Enter: الصف التالي · Tab: الخلية المجاورة · Shift+Tab: الخلية السابقة
