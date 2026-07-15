@@ -110,7 +110,7 @@ def _validate_order_documents(checks, code, order):
 		"Cutting Order",
 		filters={"factory_order": order},
 		pluck="name",
-		limit_page_length=0,
+		limit=0,
 	)
 	_check(checks, f"{code}: Cutting Order exists", bool(cutting_orders))
 	if cutting_orders:
@@ -201,7 +201,8 @@ def _validate_remnant_replacement(checks, scenarios):
 	)
 	if not values or not values.replacement_piece or not values.suggested_remnant:
 		return
-	piece_item = frappe.db.get_value("Factory Piece", values.replacement_piece, "board_item")
+	piece_cutting_order = frappe.db.get_value("Factory Piece", values.replacement_piece, "cutting_order")
+	piece_item = frappe.db.get_value("Cutting Order", piece_cutting_order, "board_item")
 	remnant = frappe.db.get_value(
 		"Board Remnant",
 		values.suggested_remnant,
