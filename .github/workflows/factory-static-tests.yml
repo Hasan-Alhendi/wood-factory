@@ -7,54 +7,18 @@ on:
       - agent/factory-order-architecture
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   static-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-        with:
-          ref: ${{ github.event_name == 'push' && 'agent/factory-order-architecture' || github.ref }}
       - uses: actions/setup-python@v6
         with:
           python-version: "3.14"
-      - name: Ensure UI UX translations
-        if: github.event_name == 'push'
-        run: |
-          python - <<'PY'
-          import csv
-          from pathlib import Path
-
-          path = Path("wood_factory/translations/ar.csv")
-          rows = list(csv.reader(path.open(encoding="utf-8", newline="")))
-          sources = {row[0] for row in rows if row}
-          additions = [
-              ("Spreadsheet navigation", "التنقل كجداول البيانات"),
-              (
-                  "Enter: next row · Tab: next cell · Shift+Tab: previous cell",
-                  "Enter: الصف التالي · Tab: الخلية المجاورة · Shift+Tab: الخلية السابقة",
-              ),
-          ]
-          with path.open("a", encoding="utf-8", newline="") as output:
-              writer = csv.writer(output, lineterminator="\n")
-              for source, translation in additions:
-                  if source not in sources:
-                      writer.writerow([source, translation])
-          PY
       - name: Install focused lint dependency
         run: python -m pip install ruff==0.14.10
-      - name: Format focused modules on branch pushes
-        if: github.event_name == 'push'
-        run: |
-          ruff check --fix \
-            wood_factory/e2e.py \
-            wood_factory/tests/test_e2e_factory_flow.py \
-            wood_factory/tests/test_ui_ux_assets.py
-          ruff format \
-            wood_factory/e2e.py \
-            wood_factory/tests/test_e2e_factory_flow.py \
-            wood_factory/tests/test_ui_ux_assets.py
       - name: Compile focused modules
         run: |
           python -m py_compile \
@@ -78,19 +42,3 @@ jobs:
           python -m unittest wood_factory.tests.test_arabic_translations
           python -m unittest wood_factory.tests.test_ui_ux_assets
           python -m unittest wood_factory.wood_factory.cutting.test_maxrects
-      - name: Commit UI UX corrections
-        if: github.event_name == 'push'
-        run: |
-          if git diff --quiet -- \
-            wood_factory/translations/ar.csv \
-            wood_factory/tests/test_ui_ux_assets.py; then
-            echo "UI UX assets already normalized"
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add \
-            wood_factory/translations/ar.csv \
-            wood_factory/tests/test_ui_ux_assets.py
-          git commit -m "Normalize factory UI UX assets"
-          git push origin HEAD:agent/factory-order-architecture
