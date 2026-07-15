@@ -1,0 +1,33 @@
+{
+ "actions": [], "allow_rename": 0, "autoname": "field:piece_uid", "creation": "2026-07-11 00:00:00.000000", "doctype": "DocType", "engine": "InnoDB",
+ "field_order": ["piece_uid", "factory_order", "cutting_order", "board_layout", "board_no", "source_piece_id", "part_name", "width_mm", "height_mm", "is_exception", "exception_reason", "current_stage", "status", "responsible", "workstation", "stage_started_at", "blocked_at", "blocked_minutes", "block_reason", "completed_at", "costing_status", "last_stage_actual_minutes", "last_stage_labor_cost", "last_stage_machine_cost", "last_stage_costing_status"],
+ "fields": [
+  {"fieldname": "piece_uid", "fieldtype": "Data", "in_list_view": 1, "label": "Piece UID", "read_only": 1, "reqd": 1, "unique": 1},
+  {"fieldname": "factory_order", "fieldtype": "Link", "in_list_view": 1, "label": "Factory Order", "options": "Factory Order", "reqd": 1},
+  {"fieldname": "cutting_order", "fieldtype": "Link", "label": "Cutting Order", "options": "Cutting Order", "reqd": 1},
+  {"fieldname": "board_layout", "fieldtype": "Link", "label": "Board Layout", "options": "Board Layout", "reqd": 1},
+  {"fieldname": "board_no", "fieldtype": "Int", "label": "Board No", "read_only": 1},
+  {"fieldname": "source_piece_id", "fieldtype": "Data", "label": "Source Piece ID", "read_only": 1},
+  {"fieldname": "part_name", "fieldtype": "Data", "in_list_view": 1, "label": "Door / Part", "read_only": 1},
+  {"fieldname": "width_mm", "fieldtype": "Float", "label": "Width (mm)", "read_only": 1},
+  {"fieldname": "height_mm", "fieldtype": "Float", "label": "Height (mm)", "read_only": 1},
+  {"default": "0", "fieldname": "is_exception", "fieldtype": "Check", "in_list_view": 1, "label": "Track Separately", "read_only": 1},
+  {"fieldname": "exception_reason", "fieldtype": "Small Text", "label": "Separate Tracking Reason", "read_only": 1},
+  {"default": "Cutting", "fieldname": "current_stage", "fieldtype": "Select", "in_list_view": 1, "label": "Current Stage", "options": "Cutting\nEdge Banding\nDrilling\nAssembly\nQuality Inspection\nPacking\nCompleted", "reqd": 1},
+  {"default": "Ready", "fieldname": "status", "fieldtype": "Select", "in_list_view": 1, "label": "Status", "options": "Ready\nIn Progress\nBlocked\nCompleted", "reqd": 1},
+  {"fieldname": "responsible", "fieldtype": "Link", "label": "Responsible", "options": "User"},
+  {"fieldname": "workstation", "fieldtype": "Link", "in_list_view": 1, "label": "Workstation", "options": "Factory Workstation"},
+  {"fieldname": "stage_started_at", "fieldtype": "Datetime", "label": "Stage Started At", "read_only": 1},
+  {"fieldname": "blocked_at", "fieldtype": "Datetime", "label": "Blocked At", "read_only": 1},
+  {"default": "0", "fieldname": "blocked_minutes", "fieldtype": "Float", "label": "Blocked Minutes", "read_only": 1},
+  {"fieldname": "block_reason", "fieldtype": "Small Text", "label": "Block Reason"},
+  {"fieldname": "completed_at", "fieldtype": "Datetime", "label": "Completed At", "read_only": 1},
+  {"default": "Pending", "fieldname": "costing_status", "fieldtype": "Select", "label": "Cumulative Costing Status", "options": "Pending\nPartial\nPosted", "read_only": 1},
+  {"fieldname": "last_stage_actual_minutes", "fieldtype": "Float", "label": "Last Stage Actual Minutes", "read_only": 1},
+  {"fieldname": "last_stage_labor_cost", "fieldtype": "Currency", "label": "Last Stage Labor Cost", "permlevel": 1, "read_only": 1},
+  {"fieldname": "last_stage_machine_cost", "fieldtype": "Currency", "label": "Last Stage Machine Cost", "permlevel": 1, "read_only": 1},
+  {"fieldname": "last_stage_costing_status", "fieldtype": "Select", "label": "Last Stage Costing Status", "options": "Pending\nPartial\nPosted", "read_only": 1}
+ ],
+ "links": [], "modified": "2026-07-13 00:00:00.000000", "modified_by": "Administrator", "module": "Wood Factory", "name": "Factory Piece", "owner": "Administrator",
+ "permissions": [{"create": 1, "delete": 1, "email": 1, "export": 1, "print": 1, "read": 1, "report": 1, "role": "System Manager", "share": 1, "write": 1}], "sort_field": "modified", "sort_order": "DESC", "states": [], "title_field": "piece_uid"
+}

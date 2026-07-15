@@ -1,0 +1,42 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "format:FAL-{#####}",
+ "creation": "2026-07-12 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": ["alert_key", "alert_type", "severity", "status", "reference_doctype", "reference_name", "description", "responsible", "escalated_to", "first_detected_at", "last_detected_at", "acknowledged_at", "acknowledged_by", "escalated_at", "resolved_at", "last_notified_at", "notification_count"],
+ "fields": [
+  {"fieldname": "alert_key", "fieldtype": "Data", "label": "Alert Key", "read_only": 1, "reqd": 1, "unique": 1},
+  {"fieldname": "alert_type", "fieldtype": "Data", "in_list_view": 1, "label": "Alert Type", "read_only": 1, "reqd": 1},
+  {"fieldname": "severity", "fieldtype": "Select", "in_list_view": 1, "label": "Severity", "options": "Low\nMedium\nHigh\nCritical", "read_only": 1, "reqd": 1},
+  {"default": "Open", "fieldname": "status", "fieldtype": "Select", "in_list_view": 1, "label": "Status", "options": "Open\nAcknowledged\nEscalated\nResolved", "read_only": 1, "reqd": 1},
+  {"fieldname": "reference_doctype", "fieldtype": "Link", "label": "Reference DocType", "options": "DocType", "read_only": 1, "reqd": 1},
+  {"fieldname": "reference_name", "fieldtype": "Dynamic Link", "in_list_view": 1, "label": "Reference", "options": "reference_doctype", "read_only": 1, "reqd": 1},
+  {"fieldname": "description", "fieldtype": "Small Text", "label": "Description", "read_only": 1},
+  {"fieldname": "responsible", "fieldtype": "Link", "in_list_view": 1, "label": "Responsible", "options": "User", "read_only": 1},
+  {"fieldname": "escalated_to", "fieldtype": "Link", "label": "Escalated To", "options": "User", "read_only": 1},
+  {"fieldname": "first_detected_at", "fieldtype": "Datetime", "label": "First Detected At", "read_only": 1, "reqd": 1},
+  {"fieldname": "last_detected_at", "fieldtype": "Datetime", "label": "Last Detected At", "read_only": 1, "reqd": 1},
+  {"fieldname": "acknowledged_at", "fieldtype": "Datetime", "label": "Acknowledged At", "read_only": 1},
+  {"fieldname": "acknowledged_by", "fieldtype": "Link", "label": "Acknowledged By", "options": "User", "read_only": 1},
+  {"fieldname": "escalated_at", "fieldtype": "Datetime", "label": "Escalated At", "read_only": 1},
+  {"fieldname": "resolved_at", "fieldtype": "Datetime", "label": "Resolved At", "read_only": 1},
+  {"fieldname": "last_notified_at", "fieldtype": "Datetime", "label": "Last Notified At", "read_only": 1},
+  {"default": "0", "fieldname": "notification_count", "fieldtype": "Int", "label": "Notification Count", "read_only": 1}
+ ],
+ "index_web_pages_for_search": 1,
+ "modified": "2026-07-12 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Wood Factory",
+ "name": "Factory Alert Log",
+ "owner": "Administrator",
+ "permissions": [
+  {"read": 1, "role": "Manufacturing User"},
+  {"read": 1, "report": 1, "role": "Manufacturing Manager", "write": 1},
+  {"read": 1, "report": 1, "role": "System Manager", "write": 1}
+ ],
+ "sort_field": "last_detected_at",
+ "sort_order": "DESC",
+ "states": []
+}

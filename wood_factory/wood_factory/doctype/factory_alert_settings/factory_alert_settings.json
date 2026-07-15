@@ -1,0 +1,39 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-07-12 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": ["enabled", "primary_manager", "escalation_manager", "create_todos", "system_notifications", "email_notifications", "blocked_alert_hours", "blocked_critical_hours", "exception_alert_hours", "exception_critical_hours", "workstation_alert_hours", "workstation_critical_hours", "high_escalation_hours", "critical_escalation_hours", "repeat_notification_hours", "auto_resolve"],
+ "fields": [
+  {"default": "1", "fieldname": "enabled", "fieldtype": "Check", "label": "Enable Factory Alerts"},
+  {"default": "Administrator", "fieldname": "primary_manager", "fieldtype": "Link", "label": "Primary Manager", "options": "User"},
+  {"default": "Administrator", "fieldname": "escalation_manager", "fieldtype": "Link", "label": "Escalation Manager", "options": "User"},
+  {"default": "1", "fieldname": "create_todos", "fieldtype": "Check", "label": "Create ToDo Tasks"},
+  {"default": "1", "fieldname": "system_notifications", "fieldtype": "Check", "label": "Send System Notifications"},
+  {"default": "0", "fieldname": "email_notifications", "fieldtype": "Check", "label": "Send Email Notifications"},
+  {"default": "2", "fieldname": "blocked_alert_hours", "fieldtype": "Float", "label": "Blocked Stage Alert After Hours", "reqd": 1},
+  {"default": "8", "fieldname": "blocked_critical_hours", "fieldtype": "Float", "label": "Blocked Stage Critical After Hours", "reqd": 1},
+  {"default": "4", "fieldname": "exception_alert_hours", "fieldtype": "Float", "label": "Piece Exception Alert After Hours", "reqd": 1},
+  {"default": "24", "fieldname": "exception_critical_hours", "fieldtype": "Float", "label": "Piece Exception Critical After Hours", "reqd": 1},
+  {"default": "1", "fieldname": "workstation_alert_hours", "fieldtype": "Float", "label": "Workstation Alert After Hours", "reqd": 1},
+  {"default": "8", "fieldname": "workstation_critical_hours", "fieldtype": "Float", "label": "Workstation Critical After Hours", "reqd": 1},
+  {"default": "4", "fieldname": "high_escalation_hours", "fieldtype": "Float", "label": "Escalate High Alerts After Hours", "reqd": 1},
+  {"default": "1", "fieldname": "critical_escalation_hours", "fieldtype": "Float", "label": "Escalate Critical Alerts After Hours", "reqd": 1},
+  {"default": "6", "fieldname": "repeat_notification_hours", "fieldtype": "Float", "label": "Repeat Notification Every Hours", "reqd": 1},
+  {"default": "1", "fieldname": "auto_resolve", "fieldtype": "Check", "label": "Auto Resolve Cleared Alerts"}
+ ],
+ "issingle": 1,
+ "modified": "2026-07-12 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Wood Factory",
+ "name": "Factory Alert Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {"create": 1, "read": 1, "role": "System Manager", "write": 1},
+  {"read": 1, "role": "Manufacturing Manager", "write": 1}
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

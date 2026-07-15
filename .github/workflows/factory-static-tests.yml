@@ -1,0 +1,44 @@
+name: Factory Static Tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - agent/factory-order-architecture
+
+permissions:
+  contents: read
+
+jobs:
+  static-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+      - name: Install focused lint dependency
+        run: python -m pip install ruff==0.14.10
+      - name: Compile focused modules
+        run: |
+          python -m py_compile \
+            wood_factory/e2e.py \
+            wood_factory/tests/test_e2e_factory_flow.py \
+            wood_factory/tests/test_ui_ux_assets.py
+      - name: Lint focused modules
+        run: |
+          ruff check \
+            wood_factory/e2e.py \
+            wood_factory/tests/test_e2e_factory_flow.py \
+            wood_factory/tests/test_ui_ux_assets.py
+          ruff format --check \
+            wood_factory/e2e.py \
+            wood_factory/tests/test_e2e_factory_flow.py \
+            wood_factory/tests/test_ui_ux_assets.py
+      - name: Validate browser JavaScript syntax
+        run: node --check wood_factory/public/js/wood_factory_ux.js
+      - name: Run pure Python factory tests
+        run: |
+          python -m unittest wood_factory.tests.test_arabic_translations
+          python -m unittest wood_factory.tests.test_ui_ux_assets
+          python -m unittest wood_factory.wood_factory.cutting.test_maxrects

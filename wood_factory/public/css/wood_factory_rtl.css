@@ -1,0 +1,312 @@
+/* Wood Factory production UX layer.
+ * Frappe already sets html[dir="rtl"] for Arabic. These rules complete RTL
+ * coverage for Desk forms, editable child tables, lists, reports and dialogs,
+ * while keeping codes, dimensions and numeric values visually stable.
+ */
+
+.wood-factory-ux {
+	--factory-control-height: 38px;
+	--factory-grid-row-height: 42px;
+	--factory-focus-ring: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent);
+}
+
+/* Shared page direction and alignment. */
+html[dir="rtl"] .page-container,
+html[dir="rtl"] .page-body,
+html[dir="rtl"] .layout-main,
+html[dir="rtl"] .layout-main-section,
+html[dir="rtl"] .form-page,
+html[dir="rtl"] .form-layout,
+html[dir="rtl"] .form-dashboard,
+html[dir="rtl"] .list-row-container,
+html[dir="rtl"] .report-wrapper,
+html[dir="rtl"] .modal-content,
+html[dir="rtl"] .popover,
+html[dir="rtl"] .dropdown-menu {
+	direction: rtl;
+	text-align: right;
+}
+
+html[dir="rtl"] .page-title,
+html[dir="rtl"] .title-text,
+html[dir="rtl"] .section-head,
+html[dir="rtl"] .control-label,
+html[dir="rtl"] .help-box,
+html[dir="rtl"] .form-message,
+html[dir="rtl"] .modal-title,
+html[dir="rtl"] .modal-body,
+html[dir="rtl"] .list-row,
+html[dir="rtl"] .list-row-head {
+	text-align: right;
+}
+
+html[dir="rtl"] .page-actions,
+html[dir="rtl"] .standard-actions,
+html[dir="rtl"] .modal-footer,
+html[dir="rtl"] .grid-footer .flex {
+	direction: rtl;
+}
+
+html[dir="rtl"] .modal-header .btn-modal-close,
+html[dir="rtl"] .modal-header .close {
+	margin-inline-start: auto;
+	margin-inline-end: 0;
+}
+
+/* Form controls: larger click targets and clearer focus. */
+.wood-factory-ux .frappe-control:not([data-fieldtype="Check"]):not([data-fieldtype="Button"]) .form-control,
+.wood-factory-ux .frappe-control:not([data-fieldtype="Check"]):not([data-fieldtype="Button"]) .input-with-feedback {
+	min-height: var(--factory-control-height);
+	border-radius: 8px;
+}
+
+.wood-factory-ux .frappe-control .control-label {
+	font-weight: 600;
+	margin-bottom: 6px;
+}
+
+.wood-factory-ux .frappe-control .form-control:focus,
+.wood-factory-ux .form-grid .form-control:focus,
+.wood-factory-ux .awesomplete > input:focus {
+	border-color: var(--primary);
+	box-shadow: var(--factory-focus-ring);
+	outline: 0;
+}
+
+.wood-factory-ux .frappe-control[data-read-only="1"] .control-value,
+.wood-factory-ux .frappe-control .like-disabled-input {
+	background: var(--subtle-fg);
+	border-radius: 8px;
+	min-height: var(--factory-control-height);
+	padding-block: 8px;
+}
+
+html[dir="rtl"] .frappe-control input,
+html[dir="rtl"] .frappe-control select,
+html[dir="rtl"] .frappe-control textarea,
+html[dir="rtl"] .frappe-control .control-value,
+html[dir="rtl"] .awesomplete > input {
+	direction: rtl;
+	text-align: right;
+	unicode-bidi: plaintext;
+}
+
+/* Codes and measurement values remain LTR even inside Arabic screens. */
+html[dir="rtl"] code,
+html[dir="rtl"] pre,
+html[dir="rtl"] .text-monospace,
+html[dir="rtl"] [data-fieldname="name"] input,
+html[dir="rtl"] [data-fieldname$="_id"] input,
+html[dir="rtl"] [data-fieldname$="_uid"] input,
+html[dir="rtl"] [data-fieldname$="_code"] input,
+html[dir="rtl"] [data-fieldname="item_code"] input,
+html[dir="rtl"] [data-fieldname="qr_code"] input,
+html[dir="rtl"] [data-fieldname$="_mm"] input,
+html[dir="rtl"] [data-fieldname$="_m"] input,
+html[dir="rtl"] [data-fieldname$="_m2"] input,
+html[dir="rtl"] [data-fieldtype="Int"] input,
+html[dir="rtl"] [data-fieldtype="Float"] input,
+html[dir="rtl"] [data-fieldtype="Currency"] input,
+html[dir="rtl"] [data-fieldtype="Percent"] input {
+	direction: ltr;
+	text-align: right;
+	unicode-bidi: isolate;
+}
+
+/* Editable child tables: full RTL, comfortable rows and spreadsheet focus. */
+html[dir="rtl"] .grid-field,
+html[dir="rtl"] .form-grid-container,
+html[dir="rtl"] .form-grid,
+html[dir="rtl"] .form-grid .grid-heading-row,
+html[dir="rtl"] .form-grid .grid-body,
+html[dir="rtl"] .form-grid .rows,
+html[dir="rtl"] .form-grid .data-row,
+html[dir="rtl"] .form-grid .grid-footer {
+	direction: rtl;
+}
+
+.wood-factory-ux .form-grid-container {
+	border: 1px solid var(--border-color);
+	border-radius: 10px;
+	overflow: auto;
+}
+
+.wood-factory-ux .form-grid {
+	border: 0;
+}
+
+.wood-factory-ux .form-grid .grid-heading-row .data-row {
+	background: var(--subtle-fg);
+	font-weight: 700;
+	min-height: var(--factory-grid-row-height);
+}
+
+.wood-factory-ux .form-grid .grid-row .data-row {
+	min-height: var(--factory-grid-row-height);
+	border-bottom: 1px solid var(--border-color);
+	transition: background-color 120ms ease, box-shadow 120ms ease;
+}
+
+.wood-factory-ux .form-grid .grid-row:last-child .data-row {
+	border-bottom: 0;
+}
+
+.wood-factory-ux .form-grid .grid-row .data-row:hover {
+	background: color-mix(in srgb, var(--primary) 4%, var(--card-bg));
+}
+
+.wood-factory-ux .form-grid .grid-row .data-row:focus-within {
+	background: color-mix(in srgb, var(--primary) 7%, var(--card-bg));
+	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 36%, transparent);
+}
+
+.wood-factory-ux .form-grid .grid-static-col {
+	display: flex;
+	align-items: center;
+	min-height: var(--factory-grid-row-height);
+	padding-block: 5px;
+}
+
+html[dir="rtl"] .form-grid .grid-static-col,
+html[dir="rtl"] .form-grid .grid-static-col .static-area,
+html[dir="rtl"] .form-grid .grid-static-col .field-area {
+	text-align: right;
+}
+
+html[dir="rtl"] .form-grid .grid-static-col.text-right,
+html[dir="rtl"] .form-grid [data-fieldtype="Int"],
+html[dir="rtl"] .form-grid [data-fieldtype="Float"],
+html[dir="rtl"] .form-grid [data-fieldtype="Currency"],
+html[dir="rtl"] .form-grid [data-fieldtype="Percent"] {
+	direction: ltr;
+	text-align: right;
+	unicode-bidi: isolate;
+}
+
+.wood-factory-ux .form-grid .grid-row .form-control {
+	min-height: 34px;
+	border-radius: 6px;
+}
+
+.wood-factory-ux .form-grid .grid-row-check,
+.wood-factory-ux .form-grid input[type="checkbox"] {
+	min-width: 18px;
+	min-height: 18px;
+}
+
+.wood-factory-ux .form-grid .grid-footer {
+	background: var(--card-bg);
+	padding: 9px 10px;
+}
+
+.factory-grid-keyboard-hint {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 6px 0 8px;
+	padding: 7px 10px;
+	border: 1px dashed var(--border-color);
+	border-radius: 8px;
+	background: var(--subtle-fg);
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+	line-height: 1.4;
+}
+
+html[dir="rtl"] .factory-grid-keyboard-hint {
+	direction: rtl;
+	text-align: right;
+}
+
+/* Lists, reports and DataTable output. */
+html[dir="rtl"] .list-row,
+html[dir="rtl"] .list-row-head,
+html[dir="rtl"] .list-row-col,
+html[dir="rtl"] .report-wrapper .form-message,
+html[dir="rtl"] .report-wrapper .datatable,
+html[dir="rtl"] .report-wrapper .dt-scrollable,
+html[dir="rtl"] .report-wrapper .dt-row,
+html[dir="rtl"] .report-wrapper .dt-cell__content {
+	direction: rtl;
+	text-align: right;
+}
+
+html[dir="rtl"] .report-wrapper .dt-cell--col-0,
+html[dir="rtl"] .report-wrapper .dt-cell--header {
+	text-align: right;
+}
+
+.wood-factory-ux .list-row-container .list-row {
+	min-height: 44px;
+	align-items: center;
+}
+
+.wood-factory-ux .list-row-container .list-row:hover {
+	background: color-mix(in srgb, var(--primary) 4%, var(--card-bg));
+}
+
+/* Custom operational pages. */
+html[dir="rtl"] .factory-control-center-page,
+html[dir="rtl"] .factory-dashboard-page,
+html[dir="rtl"] .factory-schedule-page,
+html[dir="rtl"] .factory-capacity-page,
+html[dir="rtl"] .factory-worker-page,
+html[dir="rtl"] .factory-scan-page,
+html[dir="rtl"] .factory-reports-page,
+html[dir="rtl"] .factory-performance-page,
+html[dir="rtl"] .factory-issue-analysis-page,
+html[dir="rtl"] .factory-order-timeline-page,
+html[dir="rtl"] .factory-demo-data-page,
+html[dir="rtl"] .control-section-head,
+html[dir="rtl"] .demo-section-head,
+html[dir="rtl"] .schedule-row,
+html[dir="rtl"] .bottleneck-panel,
+html[dir="rtl"] .recommendation-panel,
+html[dir="rtl"] .control-table,
+html[dir="rtl"] .demo-table,
+html[dir="rtl"] .table-responsive {
+	direction: rtl;
+	text-align: right;
+}
+
+html[dir="rtl"] .factory-control-center-page button,
+html[dir="rtl"] .factory-dashboard-page button,
+html[dir="rtl"] .factory-schedule-page button,
+html[dir="rtl"] .factory-capacity-page button,
+html[dir="rtl"] .factory-worker-page button,
+html[dir="rtl"] .factory-scan-page button,
+html[dir="rtl"] .factory-reports-page button,
+html[dir="rtl"] .factory-performance-page button,
+html[dir="rtl"] .factory-issue-analysis-page button,
+html[dir="rtl"] .factory-order-timeline-page button,
+html[dir="rtl"] .factory-demo-data-page button,
+html[dir="rtl"] .control-row > *,
+html[dir="rtl"] .control-alert-row > *,
+html[dir="rtl"] .demo-row > * {
+	text-align: right;
+}
+
+/* Keep percentages, money and durations stable in mixed Arabic/English cards. */
+html[dir="rtl"] .queue-number,
+html[dir="rtl"] [class*="eta-risk-"],
+html[dir="rtl"] .schedule-kpi b,
+html[dir="rtl"] .control-kpi b,
+html[dir="rtl"] .demo-kpi b {
+	unicode-bidi: isolate;
+}
+
+@media (max-width: 767px) {
+	.wood-factory-ux {
+		--factory-control-height: 42px;
+		--factory-grid-row-height: 46px;
+	}
+
+	.factory-grid-keyboard-hint {
+		display: none;
+	}
+
+	.wood-factory-ux .page-actions .btn,
+	.wood-factory-ux .standard-actions .btn {
+		min-height: 38px;
+	}
+}

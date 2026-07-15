@@ -1,0 +1,15 @@
+{
+ "actions": [], "allow_rename": 0, "creation": "2026-07-11 00:00:00.000000", "doctype": "DocType", "engine": "InnoDB",
+ "field_order": ["planning_days", "cutting_minutes_per_day", "edge_banding_minutes_per_day", "drilling_minutes_per_day", "assembly_minutes_per_day", "quality_inspection_minutes_per_day", "packing_minutes_per_day"],
+ "fields": [
+  {"default":"5","fieldname":"planning_days","fieldtype":"Int","label":"Planning Horizon Days","reqd":1},
+  {"default":"480","fieldname":"cutting_minutes_per_day","fieldtype":"Int","label":"Cutting Capacity Minutes / Day","reqd":1},
+  {"default":"480","fieldname":"edge_banding_minutes_per_day","fieldtype":"Int","label":"Edge Banding Capacity Minutes / Day","reqd":1},
+  {"default":"480","fieldname":"drilling_minutes_per_day","fieldtype":"Int","label":"Drilling Capacity Minutes / Day","reqd":1},
+  {"default":"480","fieldname":"assembly_minutes_per_day","fieldtype":"Int","label":"Assembly Capacity Minutes / Day","reqd":1},
+  {"default":"480","fieldname":"quality_inspection_minutes_per_day","fieldtype":"Int","label":"Quality Inspection Capacity Minutes / Day","reqd":1},
+  {"default":"480","fieldname":"packing_minutes_per_day","fieldtype":"Int","label":"Packing Capacity Minutes / Day","reqd":1}
+ ],
+ "issingle": 1, "modified": "2026-07-11 00:00:00.000000", "modified_by": "Administrator", "module": "Wood Factory", "name": "Factory Capacity Settings", "owner": "Administrator",
+ "permissions": [{"create":1,"read":1,"role":"System Manager","write":1},{"read":1,"role":"Manufacturing Manager","write":1}], "sort_field":"modified", "sort_order":"DESC", "states": []
+}

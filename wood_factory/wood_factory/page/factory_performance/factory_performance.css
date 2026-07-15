@@ -1,0 +1,16 @@
+.factory-performance-page { max-width: 1200px; margin: 0 auto; padding-bottom: 50px; }
+.performance-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0 30px; }
+.performance-kpi, .bottleneck-card { padding: 18px; border: 1px solid var(--border-color); border-radius: 11px; background: var(--card-bg); }
+.performance-kpi span, .bottleneck-card span, .bottleneck-card small { display: block; color: var(--text-muted); }
+.performance-kpi b { display: block; margin-top: 7px; font-size: 28px; }
+.factory-performance-page section { margin-top: 30px; }
+.performance-table { border: 1px solid var(--border-color); border-radius: 10px; overflow: hidden; }
+.performance-row { display: grid; grid-template-columns: 2fr repeat(3, 1fr); gap: 12px; padding: 12px 15px; border-bottom: 1px solid var(--border-color); }
+.performance-row:last-child { border-bottom: 0; }
+.performance-row.header { background: var(--subtle-fg); }
+.bottleneck-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.bottleneck-card h4 { margin: 8px 0; font-size: 20px; }
+.bottleneck-card b { display: block; margin-bottom: 5px; }
+.performance-empty { padding: 25px; border: 1px dashed var(--border-color); border-radius: 10px; color: var(--text-muted); text-align: center; }
+@media (max-width: 750px) { .performance-kpis, .bottleneck-grid { grid-template-columns: repeat(2, 1fr); } .performance-row { grid-template-columns: 1.5fr repeat(3, 1fr); overflow-x: auto; } }
+@media (max-width: 500px) { .performance-kpis, .bottleneck-grid { grid-template-columns: 1fr; } }

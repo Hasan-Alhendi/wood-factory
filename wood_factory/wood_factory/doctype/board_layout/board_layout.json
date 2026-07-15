@@ -1,0 +1,20 @@
+{
+ "actions": [], "allow_rename": 0, "autoname": "naming_series:", "creation": "2026-07-11 00:00:00.000000", "doctype": "DocType", "engine": "InnoDB",
+ "field_order": ["naming_series", "cutting_order", "board_no", "board_item", "board_width_mm", "board_height_mm", "algorithm", "layout_preview", "placements", "used_area_m2", "waste_percent"],
+ "fields": [
+  {"default": "BL-.YYYY.-.#####", "fieldname": "naming_series", "fieldtype": "Select", "label": "Naming Series", "options": "BL-.YYYY.-.#####", "reqd": 1},
+  {"fieldname": "cutting_order", "fieldtype": "Link", "in_list_view": 1, "label": "Cutting Order", "options": "Cutting Order", "reqd": 1},
+  {"fieldname": "board_no", "fieldtype": "Int", "in_list_view": 1, "label": "Board No", "reqd": 1},
+  {"fieldname": "board_item", "fieldtype": "Link", "label": "Board Item", "options": "Item", "reqd": 1},
+  {"fieldname": "board_width_mm", "fieldtype": "Float", "label": "Board Width (mm)", "reqd": 1},
+  {"fieldname": "board_height_mm", "fieldtype": "Float", "label": "Board Height (mm)", "reqd": 1},
+  {"fieldname": "algorithm", "fieldtype": "Data", "label": "Algorithm", "read_only": 1},
+  {"fieldname": "layout_preview", "fieldtype": "HTML", "label": "Board Layout Preview"},
+  {"fieldname": "placements", "fieldtype": "Table", "label": "Placements", "options": "Board Layout Placement"},
+  {"fieldname": "used_area_m2", "fieldtype": "Float", "label": "Used Area (m²)", "precision": "4", "read_only": 1},
+  {"fieldname": "waste_percent", "fieldtype": "Percent", "label": "Waste", "read_only": 1}
+ ],
+ "links": [], "modified": "2026-07-11 00:00:00.000000", "modified_by": "Administrator", "module": "Wood Factory", "name": "Board Layout", "naming_rule": "By \"Naming Series\" field", "owner": "Administrator",
+ "permissions": [{"create": 1, "delete": 1, "email": 1, "export": 1, "print": 1, "read": 1, "report": 1, "role": "System Manager", "share": 1, "write": 1}],
+ "sort_field": "modified", "sort_order": "DESC", "states": []
+}

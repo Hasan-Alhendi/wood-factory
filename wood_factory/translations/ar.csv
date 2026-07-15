@@ -1,0 +1,700 @@
+Wood Factory,إدارة معمل الخشب والألمنيوم
+Factory Order,أمر تشغيل المعمل
+Factory Orders,أوامر تشغيل المعمل
+Factory Order Stage,مرحلة أمر التشغيل
+Factory Order Stages,مراحل أمر التشغيل
+Factory Order Event,حدث أمر التشغيل
+Factory Order Events,سجل أحداث أمر التشغيل
+Cutting Order,أمر القص
+Cutting Orders,أوامر القص
+Cutting Order Part,قطعة أمر القص
+Cutting Order Parts,قطع أمر القص
+Board Layout,مخطط اللوح
+Board Layouts,مخططات الألواح
+Board Layout Placement,موضع القطعة على اللوح
+Board Layout Placements,مواضع القطع على اللوح
+Factory Piece,قطعة المعمل
+Factory Pieces,قطع المعمل
+Piece Exception,استثناء قطعة
+Piece Exceptions,استثناءات القطع
+Board Remnant,فضلة لوح
+Board Remnants,فضلات الألواح
+Factory Workstation,محطة عمل المعمل
+Factory Workstations,محطات عمل المعمل
+Factory Alert Log,سجل تنبيهات المعمل
+Factory Alert Settings,إعدادات تنبيهات المعمل
+Factory Capacity Settings,إعدادات الطاقة الإنتاجية
+Factory Accounting Settings,إعدادات محاسبة المعمل
+Factory Worker Cost Rate,معدل تكلفة عامل المعمل
+Factory Worker Cost Rates,معدلات تكلفة عمال المعمل
+Factory Cost Ledger,سجل تكاليف المعمل
+Factory Piece Stage Cost,تكلفة مرحلة القطعة
+Factory Piece Stage Costs,تكاليف مراحل القطع
+Factory Dashboard,لوحة متابعة المعمل
+Factory Control Center,مركز تحكم المعمل
+Factory Production Schedule,جدول إنتاج المعمل
+Factory Capacity Planning,تخطيط الطاقة الإنتاجية للمعمل
+Factory Worker,شاشة عامل المعمل
+Factory Scan,المسح في المعمل
+Factory Reports,تقارير المعمل
+Factory Performance,أداء المعمل
+Factory Issue Analysis,تحليل مشكلات المعمل
+Factory Order Timeline,التسلسل الزمني لأمر التشغيل
+Factory Demo Data,بيانات المعمل التجريبية
+Factory Order Profitability,ربحية أوامر التشغيل
+Factory Waste Analysis,تحليل هدر المعمل
+Factory Production Performance,أداء إنتاج المعمل
+Factory Manager,مدير المعمل
+Factory Supervisor,مشرف المعمل
+Factory Planner,مخطط الإنتاج
+Factory Accountant,محاسب المعمل
+Factory Cutting Operator,عامل القص
+Factory Edge Banding Operator,عامل القشاط
+Factory Drilling Operator,عامل التخريم
+Factory Assembly Operator,عامل التجميع
+Factory Quality Inspector,مسؤول فحص الجودة
+Factory Packing Operator,عامل التعبئة
+Factory Delivery User,مسؤول التسليم
+Factory Management,إدارة المعمل
+Factory Cutting Worker,عامل القص
+Factory Edge Banding Worker,عامل القشاط
+Factory Drilling Worker,عامل التخريم
+Factory Assembly Worker,عامل التجميع
+Factory Packing Worker,عامل التعبئة
+Cutting,القص
+Edge Banding,القشاط
+Drilling,التخريم
+Assembly,التجميع
+Quality Inspection,فحص الجودة
+Packing,التعبئة
+Draft,مسودة
+Confirmed,مؤكد
+Ready for Production,جاهز للإنتاج
+In Production,قيد الإنتاج
+Rework,إعادة العمل
+Ready for Delivery,جاهز للتسليم
+Delivered,تم التسليم
+Closed,مغلق
+Cancelled,ملغى
+Pending,بانتظار البدء
+Ready,جاهز
+In Progress,قيد التنفيذ
+Blocked,متوقف
+Paused,متوقف مؤقتًا
+Completed,مكتمل
+Skipped,متجاوز
+Open,مفتوح
+Replacement Required,بحاجة إلى تعويض
+Replacement In Progress,التعويض قيد التنفيذ
+Resolved,تم الحل
+Available,متاحة
+Reserved,محجوزة
+Consumed,مستهلكة
+Scrapped,متلفة
+Active,فعالة
+Maintenance,صيانة
+Out of Service,خارج الخدمة
+Not Started,لم يبدأ
+Partial,جزئي
+Posted,مرحّل
+Reversed,معكوس
+Complete,مكتمل
+Not Posted,غير مرحّل
+No Forecast,لا يوجد توقع
+On Track,ضمن الخطة
+At Risk,معرّض للتأخير
+Late,متأخر
+Low,منخفض
+Medium,متوسط
+High,مرتفع
+Critical,حرج
+Urgent,عاجل
+Normal,عادي
+Customer Order,طلب عميل
+Internal Replacement,تعويض داخلي
+Customer Material Consumption,استهلاك مواد طلب العميل
+Internal Replacement Material,مواد تعويض داخلي
+Remnant Material Consumption,استهلاك فضلة لوح
+Remnant Recovery,قيمة فضلة مستردة
+Waste Cost,تكلفة الهدر
+Labor Cost,تكلفة العمالة
+Machine Cost,تكلفة الماكينة
+Customer,العميل
+Sales Order,طلب البيع
+Company,الشركة
+Currency,العملة
+Order Date,تاريخ الطلب
+Expected Delivery Date,تاريخ التسليم المتوقع
+Project,المشروع
+Cost Center,مركز التكلفة
+Rework Cost Center,مركز تكلفة إعادة العمل
+Status,الحالة
+Priority,الأولوية
+Priority Override,تجاوز الأولوية
+Priority Reason,سبب تغيير الأولوية
+Current Stage,المرحلة الحالية
+Current Responsible,المسؤول الحالي
+Progress Percent,نسبة الإنجاز
+Delay Days,أيام التأخير
+Notes,ملاحظات
+Description,الوصف
+Reference,المرجع
+Reference DocType,نوع المستند المرجعي
+Reference Name,اسم المرجع
+Created By,أنشأه
+Modified By,عدّله
+Owner,المالك
+Board Item,صنف اللوح
+Board Warehouse,مستودع الألواح
+Edge Band Warehouse,مستودع القشاط
+Board Width MM,عرض اللوح بالملم
+Board Height MM,طول اللوح بالملم
+Board Length MM,طول اللوح بالملم
+Board Thickness MM,سماكة اللوح بالملم
+Board Color,لون اللوح
+Saw Kerf MM,سماكة شفرة القص بالملم
+Kerf MM,سماكة القص بالملم
+Trim Margin MM,هامش تشذيب اللوح بالملم
+Algorithm,خوارزمية الترتيب
+Board Count,عدد الألواح
+Total Boards Used,إجمالي الألواح المستخدمة
+Total Board Area M2,إجمالي مساحة الألواح م²
+Used Area M2,المساحة المستخدمة م²
+Waste Area M2,مساحة الهدر م²
+Waste Percent,نسبة الهدر
+Total Waste M2,إجمالي الهدر م²
+Total Edge Band Length M,إجمالي طول القشاط م
+Total Edge Band Cost,إجمالي تكلفة القشاط
+Cutting Cost,تكلفة القص
+Total Cost,التكلفة الإجمالية
+Material Stock Entry,قيد صرف المواد
+Stock Entry Value,قيمة قيد المخزون
+Customer Billable,قابل للفوترة على العميل
+Cost Owner,الجهة المتحملة للتكلفة
+Accounting Status,حالة الترحيل المحاسبي
+Cost Ledger Entry,قيد سجل التكلفة
+Order Type,نوع الأمر
+Part Name,اسم القطعة
+Piece No,رقم القطعة
+Piece UID,المعرّف الفريد للقطعة
+Width MM,العرض بالملم
+Height MM,الطول بالملم
+Width CM,العرض بالسم
+Length CM,الطول بالسم
+Quantity,الكمية
+Allow Rotation,السماح بالتدوير
+Rotated,مدوّرة
+Grain Direction,اتجاه عروق الخشب
+Along Height,باتجاه الطول
+Along Width,باتجاه العرض
+Any,أي اتجاه
+Edge Top,قشاط الحافة العلوية
+Edge Right,قشاط الحافة اليمنى
+Edge Bottom,قشاط الحافة السفلية
+Edge Left,قشاط الحافة اليسرى
+Edge Long Right,قشاط الضلع الطويل الأيمن
+Edge Long Left,قشاط الضلع الطويل الأيسر
+Edge Width Top,قشاط ضلع العرض العلوي
+Edge Width Bottom,قشاط ضلع العرض السفلي
+Edge Band Item,صنف القشاط
+Edge Band Rate Per M,سعر متر القشاط
+Edge Meters,أمتار القشاط
+Area M2,المساحة م²
+Board Number,رقم اللوح
+X MM,الموضع س بالملم
+Y MM,الموضع ص بالملم
+Placed Width MM,عرض القطعة الموضوع بالملم
+Placed Height MM,طول القطعة الموضوع بالملم
+Stage,المرحلة
+Sequence,الترتيب
+Responsible,المسؤول
+Started At,وقت البدء
+Completed At,وقت الإنهاء
+Blocked At,وقت التوقف
+Blocked Minutes,دقائق التوقف
+Block Reason,سبب التوقف
+Actual Minutes,الدقائق الفعلية
+Estimated Minutes,الدقائق المقدرة
+Workstation,محطة العمل
+Internal Rework,إعادة عمل داخلية
+Labor Hourly Rate,تكلفة العامل بالساعة
+Machine Hourly Rate,تكلفة الماكينة بالساعة
+Costing Status,حالة احتساب التكلفة
+Exception Type,نوع الاستثناء
+Reason,السبب
+Reported Stage,مرحلة الإبلاغ
+Reported By,أبلغ عنه
+Replacement Piece,القطعة التعويضية
+Suggested Remnant,الفضلة المقترحة
+Reserved Remnant,الفضلة المحجوزة
+Replacement Cutting Order,أمر القص التعويضي
+Resolution Notes,ملاحظات المعالجة
+Missing,ناقصة
+Damaged,تالفة
+Wrong Dimensions,قياسات خاطئة
+Other,أخرى
+Parent Remnant,الفضلة الأصل
+Source Cutting Order,أمر القص المصدر
+Source Board Layout,مخطط اللوح المصدر
+Warehouse,المستودع
+Valuation Rate Per M2,قيمة المتر المربع
+Estimated Value,القيمة المقدرة
+Residual Scrap Value,قيمة القصاصات المتبقية
+Reserved For Piece,محجوزة للقطعة
+Reserved At,وقت الحجز
+Consumed At,وقت الاستهلاك
+Scrapped At,وقت الإتلاف
+Workstation Name,اسم محطة العمل
+Minutes Per Day,دقائق العمل اليومية
+Efficiency Percent,نسبة الكفاءة
+Effective Minutes Per Day,الدقائق الفعلية اليومية
+Default Labor Hourly Cost,تكلفة العامل الافتراضية بالساعة
+Machine Hourly Cost,تكلفة تشغيل الماكينة بالساعة
+Track Labor Cost,احتساب تكلفة العامل
+Track Machine Cost,احتساب تكلفة الماكينة
+Unavailable Reason,سبب عدم التوفر
+Alert Key,مفتاح التنبيه
+Alert Type,نوع التنبيه
+Severity,درجة الخطورة
+Escalated To,تم التصعيد إلى
+First Detected At,أول وقت اكتشاف
+Last Detected At,آخر وقت اكتشاف
+Acknowledged At,وقت التأكيد
+Acknowledged By,أكد التنبيه
+Escalated At,وقت التصعيد
+Resolved At,وقت الحل
+Last Notified At,آخر وقت إشعار
+Notification Count,عدد الإشعارات
+Enabled,مفعّل
+Create Cost Ledger,إنشاء سجل تكلفة
+Require Cost Center,إلزام مركز التكلفة
+Customer Cost Center,مركز تكلفة طلبات العملاء
+Internal Rework Cost Center,مركز تكلفة الأخطاء وإعادة العمل
+Material Expense Account,حساب مصروف المواد
+Labor Expense Account,حساب مصروف العمالة
+Machine Expense Account,حساب مصروف تشغيل الماكينات
+Internal Rework Expense Account,حساب مصروف التعويض وإعادة العمل
+Default Project,المشروع الافتراضي
+Worker User,مستخدم العامل
+Hourly Labor Cost,تكلفة العامل بالساعة
+Effective From,ساري من
+Transaction Key,مفتاح الحركة
+Transaction Type,نوع الحركة
+Amount,المبلغ
+Posted On,تاريخ الترحيل
+Accounting Document Type,نوع المستند المحاسبي
+Accounting Document,المستند المحاسبي
+Customer Material Cost,تكلفة مواد العميل
+Internal Rework Material Cost,تكلفة مواد إعادة العمل
+Recovered Remnant Value,قيمة الفضلات المستردة
+Total Posted Material Cost,إجمالي تكلفة المواد المرحلة
+Customer Labor Cost,تكلفة عمالة طلب العميل
+Internal Rework Labor Cost,تكلفة عمالة إعادة العمل
+Customer Machine Cost,تكلفة ماكينات طلب العميل
+Internal Rework Machine Cost,تكلفة ماكينات إعادة العمل
+Total Labor Cost,إجمالي تكلفة العمالة
+Total Machine Cost,إجمالي تكلفة الماكينات
+Net Waste Cost,صافي تكلفة الهدر
+Waste Cost Within Material,تكلفة الهدر ضمن المواد
+Customer-Attributable Actual Cost,التكلفة الفعلية المحملة على طلب العميل
+Factory Error / Rework Cost,تكلفة خطأ المعمل وإعادة العمل
+Total Actual Cost,إجمالي التكلفة الفعلية
+Last Costing Calculation,آخر احتساب للتكلفة
+Refresh,تحديث
+Refresh Queue,تحديث الطابور
+Refresh Status,تحديث الحالة
+Open Page,فتح الصفحة
+Control Center,مركز التحكم
+Alert Settings,إعدادات التنبيهات
+All Alerts,كل التنبيهات
+Production Schedule,جدول الإنتاج
+Worker Screen,شاشة العامل
+Capacity Planning,تخطيط الطاقة الإنتاجية
+Demo Data,بيانات تجريبية
+Generate Demo Dataset,إنشاء البيانات التجريبية
+Create Disabled Demo Users,إنشاء مستخدمين تجريبيين معطلين
+Create Demo Stock Receipt,إنشاء رصيد مخزون تجريبي
+Optimize Layout,ترتيب القطع على الألواح
+Check Material Availability,فحص توفر المواد
+Approve & Consume Materials,اعتماد وصرف المواد
+Open Board Layouts,فتح مخططات الألواح
+Open Factory Pieces,فتح قطع المعمل
+Recalculate Actual Cost,إعادة احتساب التكلفة الفعلية
+Start,بدء
+Resume,استئناف
+Pause,إيقاف مؤقت
+Block,إيقاف بسبب عائق
+Complete Stage,إنهاء المرحلة
+Report Exception,الإبلاغ عن استثناء
+Require Replacement,طلب قطعة تعويضية
+Start Replacement,بدء تصنيع التعويض
+Find Best Remnant,البحث عن أفضل فضلة
+Create Replacement Cutting Order,إنشاء أمر قص تعويضي
+Confirm Replacement Completed,تأكيد اكتمال القطعة التعويضية
+Resolve,حل
+Cancel,إلغاء
+Mark Ready for Delivery,تحديد كجاهز للتسليم
+Confirm Delivered,تأكيد التسليم
+What-if Simulation,محاكاة ماذا لو
+Simulate,تشغيل المحاكاة
+View action plan,عرض خطة الإجراء
+View all stages,عرض جميع المراحل
+View all,عرض الكل
+Acknowledge,تأكيد الاطلاع
+Escalate,تصعيد
+Rebalance Waiting Queue,إعادة توزيع طابور الانتظار
+Preview Queue Rebalancing,معاينة إعادة توزيع الطابور
+Measurements Only,القياسات فقط
+Print Cutting Plan,طباعة مخطط القص
+Export DXF,تصدير DXF
+Scan,مسح
+Search,بحث
+Last refresh,آخر تحديث
+Active Orders,الطلبات الفعالة
+Queued Orders,الطلبات في الطابور
+At Risk / Late,معرّضة للتأخير أو متأخرة
+Active Alerts,التنبيهات الفعالة
+Critical Alerts,التنبيهات الحرجة
+Escalated,مصعّد
+Acknowledged,تم الاطلاع
+Open Exceptions,الاستثناءات المفتوحة
+Unavailable Workstations,محطات العمل غير المتاحة
+Structured Alerts & Escalations,التنبيهات والتصعيدات المنظمة
+Top Recommendations,أهم التوصيات
+Top Production Recommendation,أهم توصية إنتاجية
+Production Recommendations,توصيات الإنتاج
+Production Bottlenecks,اختناقات الإنتاج
+Current Production Bottleneck,عنق الزجاجة الحالي في الإنتاج
+Highest Production Load,أعلى حمل إنتاجي
+Priority Production Queue,طابور الإنتاج حسب الأولوية
+Management Interventions,التدخلات الإدارية
+Open Piece Exceptions,استثناءات القطع المفتوحة
+Delayed Orders,الطلبات المتأخرة
+Nothing requiring attention,لا توجد حالات تحتاج إلى تدخل
+Alert,التنبيه
+First Detected,أول اكتشاف
+Waiting,في الانتظار
+Waiting Orders,طلبات منتظرة
+Queue Days,أيام الطابور
+Queue Position,ترتيب الطابور
+Highest Loaded Workstation,محطة العمل الأعلى حملًا
+Load,الحمل
+Recommendations,التوصيات
+Recommendation(s),توصيات
+Automatic priority,أولوية تلقائية
+Manual override,تعديل يدوي للأولوية
+Workstation not assigned,لم تُعيّن محطة عمل
+ETA,الوقت المتوقع للإنهاء
+ETA unavailable,وقت الإنجاز المتوقع غير متاح
+Due today,موعده اليوم
+No delivery date,لا يوجد تاريخ تسليم
+days left,أيام متبقية
+days late,أيام تأخير
+open exception(s),استثناءات مفتوحة
+No orders waiting for production,لا توجد طلبات بانتظار الإنتاج
+Production Bottleneck Analysis,تحليل اختناقات الإنتاج
+No active production load,لا يوجد حمل إنتاجي فعّال
+What-if Production Simulation,محاكاة ماذا لو للإنتاج
+Unavailable Workstation,محطة العمل غير المتاحة
+Downtime Days,أيام التوقف
+Expedite Order,تقديم طلب في الطابور
+Extra Work Minutes,دقائق عمل إضافية
+Simulation Impact,أثر المحاكاة
+Affected Orders,الطلبات المتأثرة
+New At Risk / Late,طلبات جديدة معرضة للتأخير أو متأخرة
+Late After Scenario,المتأخرة بعد السيناريو
+Maximum Delay,أقصى تأخير
+ETA Shift,تغير موعد الإنجاز
+Before,قبل
+After,بعد
+New ETA,موعد الإنجاز الجديد
+Scenario causes no forecast change,السيناريو لا يغيّر التوقعات
+Rebalance Queue,إعادة توزيع الطابور
+Temporary Overtime,ساعات إضافية مؤقتة
+Resolve Blocks,معالجة التوقفات
+Protect Delivery Dates,حماية مواعيد التسليم
+Assign Workstations,تعيين محطات العمل
+Recommendations are decision support. Queue or staffing changes require manager approval.,التوصيات أداة مساعدة لاتخاذ القرار، وأي تغيير في الطابور أو توزيع العمال يحتاج إلى موافقة المدير.
+Net Sales,صافي المبيعات
+Recorded Actual Cost,التكلفة الفعلية المسجلة
+Profit Before Factory Errors,الربح قبل أخطاء المعمل
+Net Profit After Errors,صافي الربح بعد الأخطاء
+Gross Margin,هامش الربح الإجمالي
+Gross Margin %,نسبة هامش الربح الإجمالي
+Factory Error Cost,تكلفة أخطاء المعمل
+Rework Hours,ساعات إعادة العمل
+Incomplete Costing,طلبات بتكلفة غير مكتملة
+Net Profit,صافي الربح
+Margin %,هامش الربح %
+Gross Unused Value,القيمة الإجمالية غير المستخدمة
+Explicit Scrap Cost,تكلفة القصاصات المتلفة
+Recovery Rate %,نسبة استرداد الفضلات %
+Completed Operations,العمليات المكتملة
+Work Hours,ساعات العمل
+Average Minutes,متوسط الدقائق
+Blocked Hours,ساعات التوقف
+Blocked %,نسبة التوقف %
+Operating Cost,تكلفة التشغيل
+Group By,تجميع حسب
+From Date,من تاريخ
+To Date,إلى تاريخ
+Monthly Profit Trend,اتجاه الربح الشهري
+Customer Profitability,ربحية العملاء
+Cost Composition,تركيب التكلفة
+Waste by Board Material,الهدر حسب مادة اللوح
+Stage Performance,أداء المراحل
+Worker Productivity,إنتاجية العمال
+Workstation Performance,أداء محطات العمل
+Loss-Making Orders,الطلبات الخاسرة
+Safe Demonstration Dataset,بيانات تجريبية آمنة
+"Uses a company-specific prefix, disabled example users, and idempotent creation. It never deletes production records.",تستخدم بادئة خاصة بكل شركة ومستخدمين تجريبيين معطلين، ويمكن تشغيلها أكثر من مرة دون تكرار، ولا تحذف أي بيانات إنتاج حقيقية.
+Not Generated,غير منشأة
+Disabled Users,المستخدمون المعطلون
+Exceptions,الاستثناءات
+Remnants,الفضلات
+Alerts,التنبيهات
+Realistic Scenarios,سيناريوهات واقعية
+Scenario,السيناريو
+Purpose,الهدف
+Safety Notes,ملاحظات الأمان
+Warnings,تحذيرات
+Select a company first,اختر الشركة أولًا
+A submitted Material Receipt will be created once for the demo warehouses.,سيتم إنشاء إذن استلام مواد مرحّل مرة واحدة لمستودعات البيانات التجريبية.
+The operation is idempotent and does not delete production data.,يمكن تكرار العملية دون تكرار السجلات، وهي لا تحذف بيانات الإنتاج.
+Generating realistic factory demo data...,جارٍ إنشاء بيانات تجريبية واقعية للمعمل...
+Demo Dataset Created with Warnings,تم إنشاء البيانات التجريبية مع وجود تحذيرات
+Factory demo dataset is ready,بيانات المعمل التجريبية جاهزة
+Order,الطلب
+Stage / Workstation,المرحلة / محطة العمل
+Risk,المخاطر
+waiting,قيد الانتظار
+Scan QR / Barcode,مسح QR / الباركود
+All stage work,جميع أعمال المرحلة
+Whole orders,الطلبات الكاملة
+Separate pieces,القطع المنفصلة
+Workstation Queue,طابور محطة العمل
+Whole Factory Orders,أوامر تشغيل المعمل الكاملة
+No whole orders waiting in this queue,لا توجد طلبات كاملة بانتظار هذا الطابور
+Exception Pieces Only,القطع الاستثنائية فقط
+No pieces require separate tracking,لا توجد قطع تحتاج إلى متابعة منفصلة
+Unassigned,غير معيّن
+Stage Status,حالة المرحلة
+Delayed,متأخر
+days,أيام
+Assign on start,تعيين عند البدء
+Separate piece,قطعة منفصلة
+Cumulative costing,حالة التكلفة التراكمية
+Last stage,المرحلة الأخيرة
+min,دقيقة
+Block Work,إيقاف العمل
+Confirm,تأكيد
+Scan Factory Code,مسح رمز المعمل
+Scan the whole order code. Only exception pieces are opened separately.,امسح رمز الطلب الكامل، ولا تُفتح القطع منفصلة إلا إذا كانت قطعًا استثنائية.
+Open Work,فتح العمل
+QR / Barcode,QR / الباركود
+QR Code,رمز QR
+Barcode,الباركود
+Performance,الأداء
+Issue Analysis,تحليل المشكلات
+Needs Intervention,بحاجة إلى تدخل
+Needs Management Intervention,بحاجة إلى تدخل إداري
+Orders by Current Stage,الطلبات حسب المرحلة الحالية
+Blocked Work,الأعمال المتوقفة
+Nothing to show,لا توجد بيانات للعرض
+Administrator,مدير النظام
+Order Status,حالة الطلب
+New,جديد
+Waiting for Materials,بانتظار المواد
+Profitability Report,تقرير الربحية
+Waste Analysis,تحليل الهدر
+Production Performance,أداء الإنتاج
+Detailed Reports,التقارير التفصيلية
+Select a Company to calculate financial reports in one currency,اختر شركة لحساب التقارير المالية بعملة واحدة
+Reporting period,فترة التقرير
+Profitability by Factory Order,الربحية حسب أمر تشغيل المعمل
+Revenue uses Sales Order net total before taxes,يعتمد الإيراد على صافي إجمالي طلب البيع قبل الضرائب
+Customer production versus factory-funded errors,إنتاج العميل مقابل الأخطاء التي يتحملها المعمل
+Orders grouped by Factory Order date,الطلبات مجمعة حسب تاريخ أمر تشغيل المعمل
+Waste and Remnant Recovery by Material,الهدر واسترداد الفضلات حسب المادة
+Recovered value,القيمة المستردة
+Recovery rate,نسبة الاسترداد
+Stage Productivity,إنتاجية المراحل
+recorded operations,عمليات مسجلة
+total work hours,إجمالي ساعات العمل
+blocked hours,ساعات توقف
+Sorted by net sales,مرتبة حسب صافي المبيعات
+Net sales,صافي المبيعات
+Actual cost,التكلفة الفعلية
+Factory errors,أخطاء المعمل
+Order / Customer,الطلب / العميل
+Revenue,الإيراد
+Actual Cost,التكلفة الفعلية
+Error Cost,تكلفة الخطأ
+Costing,احتساب التكلفة
+Customer Materials,مواد العميل
+Customer Labor,عمالة العميل
+Customer Machines,ماكينات العميل
+Factory Errors / Rework,أخطاء المعمل / إعادة العمل
+Waste Within Materials,الهدر ضمن المواد
+Month,الشهر
+Orders,الطلبات
+Profit,الربح
+Margin,الهامش
+Board Material,مادة اللوح
+Boards,الألواح
+Gross Unused,إجمالي غير المستخدم
+Recovered,مسترد
+Scrap,قصاصات متلفة
+Net Waste,صافي الهدر
+Worker,العامل
+Hours,الساعات
+Avg Min,متوسط الدقائق
+Rework Hrs,ساعات إعادة العمل
+Cost,التكلفة
+No data for the selected filters,لا توجد بيانات للفلاتر المحددة
+Refresh Forecast,تحديث التوقعات
+Workstations,محطات العمل
+Capacity Settings,إعدادات الطاقة الإنتاجية
+Forecast horizon,أفق التوقع
+working day(s),أيام عمل
+Critical Stages,المراحل الحرجة
+Active Workstations,محطات العمل الفعالة
+Maximum Load,أقصى حمل
+Predicted Bottlenecks,الاختناقات المتوقعة
+load,حمل
+workstation(s) active,محطات عمل فعالة
+No available capacity,لا توجد طاقة إنتاجية متاحة
+capacity days required,أيام طاقة إنتاجية مطلوبة
+Stage Capacity Forecast,توقع الطاقة حسب المرحلة
+Queued,في الطابور
+Daily Capacity,الطاقة اليومية
+No queued production work,لا توجد أعمال إنتاج في الطابور
+Orders Measured,الطلبات المقاسة
+Completed Stages,المراحل المكتملة
+Actual Work Hours,ساعات العمل الفعلية
+Likely Bottlenecks,الاختناقات المحتملة
+Worker Activity,نشاط العمال
+Avg. Minutes,متوسط الدقائق
+min avg,متوسط بالدقائق
+blocked,متوقف
+Not enough completed production data yet,لا توجد بيانات إنتاج مكتملة كافية بعد
+Stoppages,التوقفات
+Stoppage Causes,أسباب التوقف
+Piece Error Types,أنواع أخطاء القطع
+Issues by Production Stage,المشكلات حسب مرحلة الإنتاج
+occurrence(s),مرات حدوث
+No issues recorded for this period,لا توجد مشكلات مسجلة خلال هذه الفترة
+By,بواسطة
+No production events recorded yet,لا توجد أحداث إنتاج مسجلة بعد
+Stages Initialized,تمت تهيئة المراحل
+Workstation Assigned,تم تعيين محطة العمل
+Queue Rebalanced,تمت إعادة توزيع الطابور
+Stage Started,بدأت المرحلة
+Stage Resumed,تم استئناف المرحلة
+Stage Blocked,توقفت المرحلة
+Stage Completed,اكتملت المرحلة
+Exception Reported,تم الإبلاغ عن استثناء
+Exception Resolved,تم حل الاستثناء
+Initialize Production Stages,تهيئة مراحل الإنتاج
+Production,الإنتاج
+View,عرض
+Production Timeline,التسلسل الزمني للإنتاج
+Accounting Settings,إعدادات المحاسبة
+Worker Cost Rates,معدلات تكلفة العمال
+Workstation Cost Rates,معدلات تكلفة محطات العمل
+Delivery,التسليم
+Auto Assign Workstation: {0},تعيين محطة العمل تلقائيًا: {0}
+Start / Resume: {0},بدء / استئناف: {0}
+Complete: {0},إنهاء: {0}
+Block: {0},إيقاف: {0}
+Selected workstation is not active,محطة العمل المحددة غير فعالة
+Delivery status updated,تم تحديث حالة التسليم
+Stage completed. Costing status: {0},اكتملت المرحلة. حالة التكلفة: {0}
+Assigned to {0},تم التعيين إلى {0}
+Production stage updated,تم تحديث مرحلة الإنتاج
+Actual cost recalculated: {0},تمت إعادة احتساب التكلفة الفعلية: {0}
+Block Production Stage,إيقاف مرحلة الإنتاج
+Approved,معتمد
+In Cutting,قيد القص
+Optimized,تم ترتيب الألواح
+Optimize Board Layout,ترتيب القطع على الألواح
+Check Material Stock,فحص مخزون المواد
+Materials,المواد
+Material shortage found,يوجد نقص في المواد
+All required materials are available,جميع المواد المطلوبة متاحة
+Item,الصنف
+Required,المطلوب
+Shortage,النقص
+the factory internal rework cost center,مركز تكلفة الأخطاء وإعادة العمل في المعمل
+the customer order cost center,مركز تكلفة طلب العميل
+"This will submit a Material Issue, deduct boards and edge band from stock, and post the value to {0}. Continue?",سيتم ترحيل إذن صرف مواد وخصم الألواح والقشاط من المخزون وتحميل القيمة على {0}. هل تريد المتابعة؟
+Customer order cost,تكلفة طلب العميل
+Factory internal rework cost,تكلفة إعادة العمل الداخلية في المعمل
+Materials Posted,تم ترحيل المواد
+Stock Entry,قيد المخزون
+Posted Value,القيمة المرحلة
+Available Qty,الكمية المتاحة
+Replacement,التعويض
+Replacement In Production,القطعة التعويضية قيد الإنتاج
+Replacement Completed,اكتمل تصنيع القطعة التعويضية
+Start Replacement Manufacturing,بدء تصنيع القطعة التعويضية
+Create Factory-Funded Cutting Order,إنشاء أمر قص على حساب المعمل
+Open Replacement Piece,فتح القطعة التعويضية
+Open Suggested Remnant,فتح الفضلة المقترحة
+Open Replacement Cutting Order,فتح أمر القص التعويضي
+Resolve Exception,حل الاستثناء
+Cancel Exception,إلغاء الاستثناء
+Cancellation Notes,ملاحظات الإلغاء
+Exception,الاستثناء
+Reserved remnant {0} with {1} m² remaining area,تم حجز الفضلة {0}، والمساحة المتبقية {1} م²
+No available remnant of board item {0} fits this replacement piece. Create a factory-funded cutting order.,لا توجد فضلة متاحة من صنف اللوح {0} تناسب القطعة التعويضية. أنشئ أمر قص على حساب المعمل.
+Created internal cutting order {0}; customer will not be billed,تم إنشاء أمر القص الداخلي {0}، ولن يتحمل العميل تكلفته
+Reserve for Piece,حجز لقطعة
+Remnant,الفضلة
+Consume,استهلاك
+Release Reservation,إلغاء الحجز
+Reserve Remnant,حجز الفضلة
+Reserve,حجز
+Scrap Remnant,إتلاف الفضلة
+Queue,الطابور
+No Capacity,لا توجد طاقة متاحة
+Queue Rebalancing Preview,معاينة إعادة توزيع الطابور
+Waiting jobs,الأعمال المنتظرة
+Movable,قابل للنقل
+From,من
+Suggested Workstation,محطة العمل المقترحة
+No queue changes suggested,لا توجد تغييرات مقترحة على الطابور
+Move waiting jobs to the best active workstations? In-progress work will never be moved.,هل تريد نقل الأعمال المنتظرة إلى أفضل محطات العمل الفعالة؟ لن يتم نقل أي عمل قيد التنفيذ.
+Moved {0} waiting job(s),تم نقل {0} من الأعمال المنتظرة
+Piece,قطعة
+Board,اللوح
+Pieces,القطع
+Waste,الهدر
+Edge Band,القشاط
+Report Missing / Damaged,الإبلاغ عن قطعة ناقصة / تالفة
+Open Exception,فتح الاستثناء
+Start / Resume,بدء / استئناف
+Wrong Edge Banding,قشاط خاطئ
+Quality Rejection,مرفوضة في فحص الجودة
+Report Piece Exception,الإبلاغ عن استثناء قطعة
+Create,إنشاء
+Block Piece,إيقاف القطعة
+Resolve this alert manually?,هل تريد حل هذا التنبيه يدويًا؟
+Open Reference,فتح المرجع
+Translation Audit,تدقيق الترجمة
+Arabic Translation Coverage,تغطية الترجمة العربية
+Source Strings,العبارات المصدرية
+App Arabic Translations,ترجمات التطبيق العربية
+Covered,مترجم
+Missing Arabic Translations,ترجمات عربية مفقودة
+All detected factory terms have Arabic translations.,جميع مصطلحات المعمل المكتشفة لها ترجمة عربية.
+No missing Arabic translations,لا توجد ترجمات عربية مفقودة
+No urgent production recommendations. Current flow is stable.,لا توجد توصيات إنتاج عاجلة، وسير العمل مستقر حاليًا.
+Action,الإجراء
+Recommendation,التوصية
+No recommendations,لا توجد توصيات
+"This workstation belongs to {0}, not {1}",محطة العمل هذه تابعة لمرحلة {0} وليست لمرحلة {1}
+"Stage completed. Labor: {0}, Machine: {1}, Costing: {2}",اكتملت المرحلة. العمالة: {0}، الماكينة: {1}، حالة التكلفة: {2}
+"Optimized with {0}: {1} board(s), {2}% waste",تم الترتيب باستخدام {0}: عدد الألواح {1}، ونسبة الهدر {2}%
+Spreadsheet navigation,التنقل كجداول البيانات
+Enter: next row · Tab: next cell · Shift+Tab: previous cell,Enter: الصف التالي · Tab: الخلية المجاورة · Shift+Tab: الخلية السابقة
