@@ -44,6 +44,17 @@ jobs:
           PY
       - name: Install focused lint dependency
         run: python -m pip install ruff==0.14.10
+      - name: Format focused modules on branch pushes
+        if: github.event_name == 'push'
+        run: |
+          ruff check --fix \
+            wood_factory/e2e.py \
+            wood_factory/tests/test_e2e_factory_flow.py \
+            wood_factory/tests/test_ui_ux_assets.py
+          ruff format \
+            wood_factory/e2e.py \
+            wood_factory/tests/test_e2e_factory_flow.py \
+            wood_factory/tests/test_ui_ux_assets.py
       - name: Compile focused modules
         run: |
           python -m py_compile \
@@ -67,15 +78,19 @@ jobs:
           python -m unittest wood_factory.tests.test_arabic_translations
           python -m unittest wood_factory.tests.test_ui_ux_assets
           python -m unittest wood_factory.wood_factory.cutting.test_maxrects
-      - name: Commit UI UX translations
+      - name: Commit UI UX corrections
         if: github.event_name == 'push'
         run: |
-          if git diff --quiet -- wood_factory/translations/ar.csv; then
-            echo "UI UX translations already exist"
+          if git diff --quiet -- \
+            wood_factory/translations/ar.csv \
+            wood_factory/tests/test_ui_ux_assets.py; then
+            echo "UI UX assets already normalized"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add wood_factory/translations/ar.csv
-          git commit -m "Translate factory spreadsheet navigation"
+          git add \
+            wood_factory/translations/ar.csv \
+            wood_factory/tests/test_ui_ux_assets.py
+          git commit -m "Normalize factory UI UX assets"
           git push origin HEAD:agent/factory-order-architecture
