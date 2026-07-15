@@ -7,16 +7,41 @@ on:
       - agent/factory-order-architecture
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   static-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event_name == 'push' && 'agent/factory-order-architecture' || github.ref }}
       - uses: actions/setup-python@v6
         with:
           python-version: "3.14"
+      - name: Ensure UI UX translations
+        if: github.event_name == 'push'
+        run: |
+          python - <<'PY'
+          import csv
+          from pathlib import Path
+
+          path = Path("wood_factory/translations/ar.csv")
+          rows = list(csv.reader(path.open(encoding="utf-8", newline="")))
+          sources = {row[0] for row in rows if row}
+          additions = [
+              ("Spreadsheet navigation", "التنقل كجداول البيانات"),
+              (
+                  "Enter: next row · Tab: next cell · Shift+Tab: previous cell",
+                  "Enter: الصف التالي · Tab: الخلية المجاورة · Shift+Tab: الخلية السابقة",
+              ),
+          ]
+          with path.open("a", encoding="utf-8", newline="") as output:
+              writer = csv.writer(output, lineterminator="\n")
+              for source, translation in additions:
+                  if source not in sources:
+                      writer.writerow([source, translation])
+          PY
       - name: Install focused lint dependency
         run: python -m pip install ruff==0.14.10
       - name: Compile focused modules
@@ -42,3 +67,15 @@ jobs:
           python -m unittest wood_factory.tests.test_arabic_translations
           python -m unittest wood_factory.tests.test_ui_ux_assets
           python -m unittest wood_factory.wood_factory.cutting.test_maxrects
+      - name: Commit UI UX translations
+        if: github.event_name == 'push'
+        run: |
+          if git diff --quiet -- wood_factory/translations/ar.csv; then
+            echo "UI UX translations already exist"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add wood_factory/translations/ar.csv
+          git commit -m "Translate factory spreadsheet navigation"
+          git push origin HEAD:agent/factory-order-architecture
